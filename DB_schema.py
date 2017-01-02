@@ -12,15 +12,15 @@ Base = declarative_base()
 Base.query = db_session.query_property()
 
 
-class Metro_stations(Base):
+class MetroStations(Base):
     __tablename__ = 'metro_stations'
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
     latitude = Column(Float)
     longitude = Column(Float)
-    #posts = relationship('Post', backref='author')
+    # posts = relationship('Post', backref='author')
 
-    def __init__(self,name=None,latitude=None,longitude=None):
+    def __init__(self, name=None, latitude=None, longitude=None):
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
@@ -29,15 +29,14 @@ class Metro_stations(Base):
         return '<{} metro station>'.format(self.name)
 
 
-class Movie_theaters(Base):
+class MovieTheaters(Base):
     __tablename__ = 'movie_theaters'
     id = Column(Integer, primary_key=True)
     name = Column(String(140))
     adress = Column(String(500))
     latitude = Column(Float)
     longitude = Column(Float)
-    time_slots = relationship('Time_slots', backref = 'time slot for movie')
-    
+    time_slots = relationship('Time_slots', backref='time slot for movie')
 
     def __init__(self, name=None, adress=None, latitude=None, longitude=None):
         self.name = name
@@ -49,9 +48,9 @@ class Movie_theaters(Base):
         return '<{} Movie_theater>'.format(self.name)
 
 
-class Time_slots(Base):
+class TimeSlots(Base):
     __tablename__ = "time_slots"
-    id = Column(Integer, primary_key = True)
+    id = Column(Integer, primary_key=True)
     movie_theater_id = Column(Integer, ForeignKey('movie_theaters.id'))
     movie_id = Column(Integer, ForeignKey('movies.id'))
     time = Column(DateTime)
@@ -65,9 +64,9 @@ class Time_slots(Base):
 
 class Movies(Base):
     __tablename__ = "movies"
-    id = Column(Integer, primary_key = True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(120))
-    time_table = relationship('Time_slots', backref = 'movie')
+    time_table = relationship('Time_slots', backref='movie')
 
     def __init__(self, name=None):
         self.name = name
