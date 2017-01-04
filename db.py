@@ -59,7 +59,7 @@ class TimeSlots(Base):
     __tablename__ = "time_slots"
     id = Column(Integer, primary_key=True)
     movie_theaters_id = Column(Integer, ForeignKey('movie_theaters.id'))
-    movies_id = Column(Integer, ForeignKey('movies.id'))
+    movie_id = Column(Integer, ForeignKey('movies.id'))
     movie_formats_id = Column(Integer, ForeignKey('movie_formats.id'))
     time = Column(DateTime)
     cost = Column(Float)
