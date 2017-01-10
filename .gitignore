@@ -90,5 +90,6 @@ ENV/
 
 add_movie_theaters.py
 kino-domino.sqlite
-
+add_movies.py
+add_timeslots.py
 config.py

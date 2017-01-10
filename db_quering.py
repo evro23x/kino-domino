@@ -12,7 +12,7 @@ def parse_time_table(time_table):
     movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().title
     result = "Расписание кинотеатра {} :\n".format(movie_theater_name)
     for time_slot in time_table:
-        movie_name = Movies.query.filter(Movies.id == time_slot.movies_id).first().title
+        movie_name = Movies.query.filter(Movies.id == time_slot.movie_id).first().title
         starting_time = time_slot.time
         result += "{} в {}\n".format(movie_name, starting_time)
     return result
