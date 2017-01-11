@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from config import db_configuration
 
-engine = create_engine(db_configuration)
+engine = create_engine(db_configuration, client_encoding='utf8')
 
 db_session = scoped_session(sessionmaker(bind=engine))
 
@@ -59,14 +59,17 @@ class TimeSlots(Base):
     __tablename__ = "time_slots"
     id = Column(Integer, primary_key=True)
     movie_theaters_id = Column(Integer, ForeignKey('movie_theaters.id'))
-    movies_id = Column(Integer, ForeignKey('movies.id'))
+    movie_id = Column(Integer, ForeignKey('movies.id'))
     movie_formats_id = Column(Integer, ForeignKey('movie_formats.id'))
     time = Column(DateTime)
     cost = Column(Float)
 
-    def __init__(self, time=None, cost=None):
-        self.cost = cost
+    def __init__(self, movie_theaters_id=None, movie_id=None, time=None, cost=None):
+        self.movie_theaters_id = movie_theaters_id
+        self.movie_id = movie_id
         self.time = time
+        self.cost = cost
+
 
     def __repr__(self):
         return '< {} at {} in {} >'.format(self.movie_id, self.time, self.movie_theaters_id)
