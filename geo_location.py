@@ -1,5 +1,4 @@
 from geopy.geocoders import Yandex
-from geopy.distance import vincenty
 from db import db_session, MovieTheaters
 
 geolocator = Yandex()
@@ -8,18 +7,6 @@ geolocator = Yandex()
 def convert_adress_to_coordinates(adress):
     location = geolocator.geocode(adress)
     return location.latitude, location.longitude
-
-# На основе геопозиции пользователя, выводим id
-# ближайшего кинотеатра
-def find_closest_theater(user_coordinates):
-    closest_theater = [100,"Name"]
-    for theater in db_session.query(MovieTheaters):
-        coordinates = theater.latitude, theater.longitude
-        distance = vincenty(coordinates, user_coordinates).km
-        if distance < closest_theater[0]:
-            closest_theater[0] = distance
-            closest_theater[1] = theater.id
-    return closest_theater[1]
 
 
 # Делаем проход по строкам в БД, конвертируем адресс в координаты,

@@ -89,7 +89,7 @@ class Movies(Base):
         self.title = title
 
     def __repr__(self):
-        return '<{}>'.format(self.movie)
+        return '<{}>'.format(self.title)
 
 
 class MovieFormats(Base):
