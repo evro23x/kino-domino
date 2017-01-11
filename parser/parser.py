@@ -93,6 +93,7 @@ for li in soup.find('ul', {'class': 'b-dropdown-common-fixed'}).findAll('li'):
                 # print(str(div_film.find('span', {'class': 'title'})).find("Сеансы в формате"))
                 # print("====================================================================   end")
                 # разбираем верстку, удаляя лишний html и спец_символы
+            # exit(0)
 
         except AttributeError:
             print("exception AttributeError")
