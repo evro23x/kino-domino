@@ -35,8 +35,6 @@ def talk_to_me(bot, update):
    # update.message.reply_text('')
 
 
-
-
 def main():
 	updater = Updater("311306094:AAEQsNUCsvCf9gO1xEdaY_F5VLlZQ725Q1g")
 	dp = updater.dispatcher
