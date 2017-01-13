@@ -1,7 +1,10 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters 
-#from user_say import user_film
+from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
+from telegram import ReplyKeyboardMarkup
 
-def greet_user(bot, update):
+#markup = types.ReplyKeyboardMarkup()
+
+def greet_user(bot, update):	
 	print('Вызван/ start')
 	bot.sendMessage(update.message.chat_id, text='Привет, друг! Что-то мне подсказывает, что ты хочешь сходить в кино :)  Какой фильм хочешь посмотреть?')
 
@@ -22,9 +25,18 @@ def talk_to_me(bot, update):
     film_list = ["Неоновый демон", "Драйв", "Шерлок"]
     user_film = update.message.text
     if user_film in film_list:
-    	bot.sendMessage(update.message.chat_id, user_film)
+    	#bot.sendMessage(update.message.chat_id, reply_markup=ReplyKeyboardMarkup(user_film))
+
+
+    	bot.sendMessage(update.message.chat_id,  text='Угу, я тебя вроде понял и даже что-то нашел :) Выбери, пожалуйста, вариант фильма')
+    	bot.sendMessage(update.message.chat_id,  user_film)
+
     else:
     	bot.sendMessage(update.message.chat_id, text="Не найдено")
+
+
+
+
 
 
 
