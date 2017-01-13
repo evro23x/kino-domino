@@ -1,6 +1,6 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters 
 from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
-from telegram import ReplyKeyboardMarkup
+#from telegram import ReplyKeyboardMarkup
 
 #markup = types.ReplyKeyboardMarkup()
 
