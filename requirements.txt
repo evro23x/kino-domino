@@ -6,14 +6,7 @@ Flask==0.12
 Flask-SQLAlchemy==2.1
 itsdangerous==0.24
 Jinja2==2.8.1
-lxml==3.7.2
 MarkupSafe==0.23
-pbr==1.10.0
-psycopg2==2.6.2
-py-postgresql==1.2.1
-six==1.10.0
 SQLAlchemy==1.1.4
-sqlalchemy-migrate==0.10.0
-sqlparse==0.2.2
-Tempita==0.5.2
+telegram==0.0.1
 Werkzeug==0.11.15
