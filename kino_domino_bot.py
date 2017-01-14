@@ -9,7 +9,6 @@ def greet_user(bot, update):
 	bot.sendMessage(update.message.chat_id, text='Привет, друг! Что-то мне подсказывает, что ты хочешь сходить в кино :)  Какой фильм хочешь посмотреть?')
 
 
-
 def show_error(bot, update, error):
     print('Update "{}" caused error "{}"'.format(update, error))
 
@@ -33,6 +32,7 @@ def talk_to_me(bot, update):
  #   user = update.message.from_user
   #  user_location = update.message.location
    # update.message.reply_text('')
+
 
 
 def main():
