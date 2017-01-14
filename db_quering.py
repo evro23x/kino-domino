@@ -1,5 +1,5 @@
 from geopy.distance import vincenty
-from db import MovieTheaters, Movies, db_session
+from db_schema import MovieTheaters, Movies, db_session
 
 
 class UserRequestFail(Exception):
