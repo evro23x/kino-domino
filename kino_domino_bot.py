@@ -1,5 +1,5 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters 
-from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
+#from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 
 #markup = types.ReplyKeyboardMarkup()
@@ -14,7 +14,7 @@ def show_error(bot, update, error):
 
 def talk_to_me(bot, update):
     print("Пришло сообщение: " + update.message.text)
-    film_list = ["Неоновый носочек", "Драйв", "Шерлок"]
+    film_list = ["Неоновый демон", "Драйв", "Шерлок"]
     user_film = update.message.text
 
     custom_keyboard = [[ user_film]] #['2'], ['3'], ['4']]
