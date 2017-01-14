@@ -81,5 +81,5 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
-    #print(main_search("asdasd", (55.7796266,37.5992518)))
+    print(main_search("asddasd", (55.7796266,37.5992518)))
     
