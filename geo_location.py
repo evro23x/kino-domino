@@ -1,5 +1,5 @@
 from geopy.geocoders import Yandex
-from db import db_session, MovieTheaters
+from db_schema import db_session, MovieTheaters
 
 geolocator = Yandex()
 
