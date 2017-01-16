@@ -91,5 +91,3 @@ for li in soup.find('ul', {'class': 'b-dropdown-common-fixed'}).findAll('li'):
                                                time=datetime.combine(date.today(), session_time))
         except AttributeError:
             print("exception AttributeError")
-            # exit(0)
-    # exit(0)
