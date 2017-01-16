@@ -64,6 +64,8 @@ for li in soup.find('ul', {'class': 'b-dropdown-common-fixed'}).findAll('li'):
                     # 1 - сеанс прошел и на него нельзя купить билеты
                     # 2 - сеанс будет но на него нельзя купить билеты
                     # 3 - сеанс будет  и на него можно  купить билеты
+                    # PS: после переезда на бой и настройки крона на ежедневный запуск в полночь
+                    # код ниже утратит актуальность, так как все фильмы будут активны
                     if str(session).find("inactive") == 13:
                         time_str = session_clear
                     elif str(session).find("href") == 10:
@@ -72,6 +74,10 @@ for li in soup.find('ul', {'class': 'b-dropdown-common-fixed'}).findAll('li'):
                         if session_clear == "Сеансывформате":
                             continue
                         time_str = session_clear
+
+                    # Проверка ниже отметает варианты когда в строке время сеанса прилетает рандомный текст
+                    if len(time_str) > 6:
+                        continue
 
                     hour, minute = [int(info) for info in time_str.split(':')]
                     session_time = time(hour, minute)
@@ -86,4 +92,4 @@ for li in soup.find('ul', {'class': 'b-dropdown-common-fixed'}).findAll('li'):
         except AttributeError:
             print("exception AttributeError")
             # exit(0)
-    exit(0)
+    # exit(0)
