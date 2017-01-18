@@ -21,8 +21,7 @@ def get_or_create(session, model, **kwargs):
 get_or_create(db_session, MovieFormats, title="2D")
 get_or_create(db_session, MovieFormats, title="3D")
 
-html_doc = urlopen('https://www.afisha.ru/msk/cinema/').read()
-soup = BeautifulSoup(html_doc, "lxml")
+soup = BeautifulSoup(urlopen('https://www.afisha.ru/msk/cinema/').read(), "lxml")
 try:
     for li in soup.find('ul', {'class': 'b-dropdown-common-fixed'}).findAll('li'):
         metro = get_or_create(db_session, MetroStations,
@@ -31,16 +30,47 @@ try:
                               longitude="0")
 
         metro_to_cinema = BeautifulSoup(urlopen('https:' + li.find('a')['href']).read(), 'lxml')
-        for div_cinema in metro_to_cinema.find('div', {'class': 'b-places-list'}).findAll('h3'):
-            movie_title = str(div_cinema.find('a').contents[0])
+        for div_cinema in metro_to_cinema.findAll('div', {'class': 'places-list-item'}):
+
+            movie_title = str(div_cinema.find('h3').find('a').contents[0])
+            cinema_info = ' '.join(div_cinema.find('div', {'class': 'places-address'}).contents[0].split())
+
+            phone1 = ''
+            phone2 = ''
+            phone3 = ''
+            address = ''
+
+            print(cinema_info)
+            if cinema_info[0] == "+":
+                phone1 = cinema_info[:cinema_info.find(',')]
+                address = cinema_info[cinema_info.find(',')+2:]
+                if address[0] == "+":
+                    phone2 = address[:address.find(',')]
+                    address = address[address.find(',') + 2:]
+                    if address[0] == "+":
+                        phone3 = address[:address.find(',')]
+                        address = address[address.find(',') + 2:]
+            else:
+                address = cinema_info
+            # print("phone1 - {}".format(phone1))
+            # print("phone2 - {}".format(phone2))
+            # print("phone3 - {}".format(phone3))
+            # print("address - {}".format(address))
+            # print("")
+            # print("")
+            # print("")
+            # print("")
+            # exit(0)
             theater = get_or_create(db_session, MovieTheaters,
                                     metro_id=metro.id,
                                     title=movie_title,
                                     latitude="0",
                                     longitude="0",
-                                    adress="",
+                                    address=address,
                                     description="",
-                                    phone="", )
+                                    phone1=phone1,
+                                    phone2=phone2,
+                                    phone3=phone3)
 
             pattern_url_table = 'https://www.afisha.ru/msk/schedule_cinema_place/'
             url_cinema = div_cinema.find('a')['href']
