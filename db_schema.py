@@ -36,21 +36,26 @@ class MovieTheaters(Base):
     id = Column(Integer, primary_key=True)
     metro_id = Column(Integer, ForeignKey('metro_stations.id'))
     title = Column(String(140))
-    adress = Column(String(500))
+    address = Column(String(500))
     description = Column(Text)
-    phone = Column(String(500))
+    phone1 = Column(String(500))
+    phone2 = Column(String(500))
+    phone3 = Column(String(500))
     latitude = Column(Float)
     longitude = Column(Float)
     time_slots = relationship('TimeSlots', backref='time_slots1')
 
-    def __init__(self, metro_id, title=None, adress=None, latitude=None, longitude=None,  description=None,  phone=None):
+    def __init__(self, metro_id, title=None, address=None, latitude=None, longitude=None,
+                 description=None,  phone1=None,  phone2=None,  phone3=None):
         self.metro_id = metro_id
         self.title = title
-        self.adress = adress
+        self.address = address
         self.latitude = latitude
         self.longitude = longitude
         self.description = description
-        self.phone = phone
+        self.phone1 = phone1
+        self.phone2 = phone2
+        self.phone3 = phone3
 
     def __repr__(self):
         return '<{} Movie_theater>'.format(self.title)
@@ -81,7 +86,7 @@ class Movies(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(120))
     description = Column(Text)
-    duraction = Column(String(120))
+    duration = Column(String(120))
     start_date = Column(String(120))
     rating = Column(String(120))
     time_slots = relationship('TimeSlots', backref='time_slots2')
