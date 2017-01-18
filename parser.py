@@ -5,17 +5,6 @@ from datetime import datetime, date, time
 
 COUNTER = 0
 ITERATIONS = 3
-# today = date.today()
-# while COUNTER < ITERATIONS:
-#     today = date.today()
-#     my_birthday = date(today.year, today.month, day=today.day + COUNTER)
-#     print(type(my_birthday))
-#     print(str(my_birthday))
-#     print(my_birthday)
-#     print(COUNTER)
-#     COUNTER += 1
-# exit(0)
-#
 
 
 def get_or_create(session, model, **kwargs):
@@ -41,7 +30,6 @@ try:
                               latitude="0",
                               longitude="0")
 
-        # print('https:{}'.format(li.find('a')['href']))
         metro_to_cinema = BeautifulSoup(urlopen('https:' + li.find('a')['href']).read(), 'lxml')
         for div_cinema in metro_to_cinema.find('div', {'class': 'b-places-list'}).findAll('h3'):
             movie_title = str(div_cinema.find('a').contents[0])
@@ -54,29 +42,20 @@ try:
                                     description="",
                                     phone="", )
 
-            # print("Парсим - {}".format(movie_title))
             pattern_url_table = 'https://www.afisha.ru/msk/schedule_cinema_place/'
             url_cinema = div_cinema.find('a')['href']
             id_cinema = url_cinema[url_cinema[0:-1].rfind('/') + 1:-1]
 
             counter = 0
-
             while counter < ITERATIONS:
                 session_date = date(date.today().year, date.today().month, day=date.today().day + counter)
 
                 date_for_url = '/' + str(session_date.day) + \
                                '-' + str(session_date.month) + \
                                '-' + str(session_date.year) + '/'
-                print("Парсим - {} за {} число".format(movie_title, date_for_url))
-
+                print("Парсим - {}, расписание на - {}".format(movie_title, date_for_url[1:-1]))
                 url_table = pattern_url_table + id_cinema + date_for_url
-
                 link_to_cinema = BeautifulSoup(urlopen(url_table).read(), 'lxml')
-                # print("?? - {}".format(pattern_url_table))
-                # print("?? - {}".format(url_cinema))
-                # print("?? - {}".format(id_cinema))
-                # print("?? - {}".format(url_table))
-                # print("?? - {}".format(link_to_cinema))
                 film_name_saver = ""
                 # проверка необходима чтобы парсер не валился на 3D фильмах
                 try:
@@ -125,11 +104,6 @@ try:
                                                        time=datetime.combine(session_date, session_time))
                 except AttributeError:
                     print("exception AttributeError")
-
-                # if movie_title == 'Олимпик Синема':
-                #     exit(0)
-
                 counter += 1
-
 except KeyboardInterrupt:
     print()
