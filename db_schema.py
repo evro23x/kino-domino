@@ -65,9 +65,10 @@ class TimeSlots(Base):
     time = Column(DateTime)
     cost = Column(Float)
 
-    def __init__(self, movie_theaters_id=None, movie_id=None, time=None, cost=None):
+    def __init__(self, movie_theaters_id=None, movie_id=None, movie_formats_id=None, time=None, cost=None):
         self.movie_theaters_id = movie_theaters_id
         self.movie_id = movie_id
+        self.movie_formats_id = movie_formats_id
         self.time = time
         # self.cost = cost
 
