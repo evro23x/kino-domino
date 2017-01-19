@@ -41,7 +41,6 @@ try:
             phone3 = ''
             address = ''
 
-            print(cinema_info)
             if cinema_info[0] == "+":
                 phone1 = cinema_info[:cinema_info.find(',')]
                 address = cinema_info[cinema_info.find(',')+2:]
@@ -53,15 +52,7 @@ try:
                         address = address[address.find(',') + 2:]
             else:
                 address = cinema_info
-            # print("phone1 - {}".format(phone1))
-            # print("phone2 - {}".format(phone2))
-            # print("phone3 - {}".format(phone3))
-            # print("address - {}".format(address))
-            # print("")
-            # print("")
-            # print("")
-            # print("")
-            # exit(0)
+
             theater = get_or_create(db_session, MovieTheaters,
                                     metro_id=metro.id,
                                     title=movie_title,
@@ -134,7 +125,7 @@ try:
                                                        movie_formats_id=format_id,
                                                        time=datetime.combine(session_date, session_time))
                 except AttributeError:
-                    print("exception AttributeError")
+                    print("Расписание на {} отсутствует для данного кинотеатра".format(date_for_url[1:-1]))
                 counter += 1
 except KeyboardInterrupt:
     print()
