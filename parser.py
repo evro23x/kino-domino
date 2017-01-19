@@ -5,6 +5,7 @@ from datetime import datetime, date, time
 
 COUNTER = 0
 ITERATIONS = 3
+# exit(0)
 
 
 def get_or_create(session, model, **kwargs):
