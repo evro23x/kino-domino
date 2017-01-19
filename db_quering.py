@@ -31,9 +31,11 @@ def is_on_screen(movie_theater_id, movie_id):
             return False
 
 
-# На основе геопозиции пользователя, выводим id
-# ближайшего кинотеатра где идет указанный пользователем фильм
 def find_closest_theater(user_coordinates, movie_id):
+    """
+        На основе геопозиции пользователя, выводим id
+        ближайшего кинотеатра где идет указанный пользователем фильм
+    """
     closest_theater = [100,""]
     for theater in db_session.query(MovieTheaters):
         coordinates = theater.latitude, theater.longitude
@@ -81,5 +83,4 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
-    print(main_search("asddasd", (55.7796266,37.5992518)))
-    
+    print(main_search("хранители", (55.7796266,37.5992518)))
