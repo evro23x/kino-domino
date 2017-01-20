@@ -1,9 +1,8 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters 
 #from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
-from telegram import ReplyKeyboardMarkup, KeyboardButton
-#from db_quering import get_movie_id, is_on_screen, find_closest_theater, get_time_table_of_theater_by_id, parse_time_table, main_search
+from telegram import ReplyKeyboardMarkup, KeyboardButton #InlineQueryResult
+#from db_quering import main_search, get_movie_id, is_on_screen, find_closest_theater, get_time_table_of_theater_by_id, parse_time_table
 
-#markup = types.ReplyKeyboardMarkup()
 
 def greet_user(bot, update):	
 	print('Вызван/ start')
@@ -13,29 +12,42 @@ def greet_user(bot, update):
 def show_error(bot, update, error):
     print('Update "{}" caused error "{}"'.format(update, error))
 
-def get_movie_id(user_input):
-    output_query = Movies.query.filter(Movies.title.like("%"+update.message.chat_id[1:]+"%")).all()
-    if len(output_query) == 1:
-        return output_query[0].id
-    else:
-        raise UserRequestFail()
 
 def talk_to_me(bot, update):
     print("Пришло сообщение: " + update.message.text)
-    film_list = ["Неоновый демон", "Драйв", "Шерлок"]
-    user_film = update.message.text
-
-    custom_keyboard = [[ user_film]] 
+    film_list = ["Драйв", "Каро", "12:45", "400", "Арбатская"] #["Шерлок", "Синема Стар", "16:00", "300"], ["Пассажиры", "Формула Кино", "16:00", "300"]] 
+    user_query = update.message.text
+    
+    custom_keyboard = [[ user_query]] 
     rm = ReplyKeyboardMarkup(custom_keyboard)
 
-    if user_film in film_list:
-    	bot.sendMessage(update.message.chat_id,  text='Угу, я тебя вроде понял и даже что-то нашел :) Выбери, пожалуйста, вариант фильма', reply_markup=rm)
-    	
-    	 
+    if user_query in film_list:
+        user_film = bot.sendMessage(update.message.chat_id,  text='Угу, я тебя вроде понял и даже что-то нашел :) Уточни, пожалуйста, вариант фильма', reply_markup=rm)
+        if user_film == user_query:
+            user_location = bot.sendMessage(update.message.chat_id, text='Отличный выбор! Давай теперь выберем кинотеатр. Где ты сейчас находишься?')
+            if user_location in film_list:
+                bot.sendMessage(update.message.chat_id, film_list)  #text='Тадаам! А вот и сеансы:', film_list)
 
+
+              
     else:
     	bot.sendMessage(update.message.chat_id, text="Не найдено")
 
+
+    
+
+
+
+#def user_location(station):
+ #   user_film = update.message.text
+  #  custom_keyboard = [[ user_film]] 
+  #  rm = ReplyKeyboardMarkup(custom_keyboard)
+
+
+
+
+    
+#def get_user_location(latitude, longitude):request location
 
 
 
