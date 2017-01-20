@@ -24,11 +24,11 @@ def get_movie_id(user_input):
 # проверяем идет ли указанный пользователем фильм в кинотеатре
 def is_on_screen(movie_theater_id, movie_id):
     time_table = get_time_table_of_theater_by_id(movie_theater_id)
+    is_movie_in_table = False
     for time_slot in time_table:
         if time_slot.movie_id == movie_id:
-            return True
-        else:
-            return False
+            is_movie_in_table = True
+    return is_movie_in_table
 
 
 def find_closest_theater(user_coordinates, movie_id):
@@ -63,9 +63,8 @@ def parse_time_table(time_table, movie_id):
     for time_slot in time_table:
         if time_slot.movie_id == movie_id:
             starting_time = time_slot.time
-            cost = time_slot.cost
             movie_name = Movies.query.filter(Movies.id == movie_id).first().title
-            result += "{} в {}, цена билета {}\n".format(movie_name, starting_time, cost)
+            result += "{} в {}\n".format(movie_name, starting_time)
     return result
 
 
@@ -84,4 +83,8 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
-    print(main_search("хранители", (55.7796266,37.5992518)))
+    user_input = "три икса"
+    user_coordinates = (55.7796266,37.5992518)
+    #print(get_movie_id(user_input))
+    print(main_search(user_input, user_coordinates))
+
