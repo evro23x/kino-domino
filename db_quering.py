@@ -83,8 +83,3 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
-    user_input = "три икса"
-    user_coordinates = (55.7796266,37.5992518)
-    #print(get_movie_id(user_input))
-    print(main_search(user_input, user_coordinates))
-
