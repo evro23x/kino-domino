@@ -5,17 +5,16 @@ from datetime import datetime, date, time
 
 COUNTER = 0
 ITERATIONS = 3
-# exit(0)
 
 
-def get_or_create(session, model, **kwargs):
-    instance = session.query(model).filter_by(**kwargs).first()
+def get_or_create(current_session, model, **kwargs):
+    instance = current_session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance
     else:
         instance = model(**kwargs)
-        session.add(instance)
-        session.commit()
+        current_session.add(instance)
+        current_session.commit()
         return instance
 
 

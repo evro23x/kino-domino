@@ -67,7 +67,8 @@ def parse_time_table(time_table, movie_id):
             movie_name = Movies.query.filter(Movies.id == movie_id).first().title
             result += "{} в {}, цена билета {}\n".format(movie_name, starting_time, cost)
     return result
-        
+
+
 # итоговая функция
 def main_search(user_input, user_coordinates):
     try:
