@@ -25,16 +25,18 @@ def get_movie_id(user_input):
 
 def talk_to_me(bot, update):
     print("Пришло сообщение: " + update.message.text)
-    film_list = ["Неоновый демон", "Драйв", "Шерлок"]
-    user_film = update.message.text
-
-    custom_keyboard = [[user_film]]
+    film_list = ["Драйв", "Каро", "12:45", "400", "Арбатская"] #["Шерлок", "Синема Стар", "16:00", "300"], ["Пассажиры", "Формула Кино", "16:00", "300"]]
+    user_query = update.message.text
+    
+    custom_keyboard = [[ user_query]] 
     rm = ReplyKeyboardMarkup(custom_keyboard)
 
-    if user_film in film_list:
-        bot.sendMessage(update.message.chat_id,
-                        text='Угу, я тебя вроде понял и даже что-то нашел :) Выбери, пожалуйста, вариант фильма',
-                        reply_markup=rm)
+    if user_query in film_list:
+        user_film = bot.sendMessage(update.message.chat_id,  text='Угу, я тебя вроде понял и даже что-то нашел :) Уточни, пожалуйста, вариант фильма', reply_markup=rm)
+        if user_film == user_query:
+            user_location = bot.sendMessage(update.message.chat_id, text='Отличный выбор! Давай теперь выберем кинотеатр. Где ты сейчас находишься?')
+            if user_location in film_list:
+                bot.sendMessage(update.message.chat_id, film_list)  #text='Тадаам! А вот и сеансы:', film_list)
     else:
         bot.sendMessage(update.message.chat_id, text="Не найдено")
 
@@ -48,6 +50,16 @@ def main():
     dp.add_error_handler(show_error)
     updater.start_polling()
     updater.idle()
+
+
+# def user_location(station):
+#    user_film = update.message.text
+#    custom_keyboard = [[ user_film]]
+#    rm = ReplyKeyboardMarkup(custom_keyboard)
+
+
+# def get_user_location(latitude, longitude):
+#     request location
 
 
 if __name__ == '__main__':
