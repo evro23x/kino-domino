@@ -31,7 +31,5 @@ def second_pass_adding_theaters_coordinates_to_DB():
     db_session.commit()
 
 if __name__ == '__main__':
-    #second_pass_adding_theaters_coordinates_to_DB()
-    #adding_movie_theaters_coordinates_to_DB()
-    #adress = "Ярцевская, 19, МФК «Кунцево-плаза»"
-    #print(convert_adress_to_coordinates(adress))
+    adding_movie_theaters_coordinates_to_DB()
+    second_pass_adding_theaters_coordinates_to_DB()

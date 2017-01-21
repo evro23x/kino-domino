@@ -47,7 +47,7 @@ def main():
 
     dp.add_handler(MessageHandler([Filters.text], get_movie))
     #dp.add_handler(MessageHandler([Filters.text], get_location))
-    #dp.add_handler(MessageHandler([Filters.text], get_location))
+    #dp.add_handler(MessageHandler([Filters.location], get_location))
 
 
 
