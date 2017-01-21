@@ -1,5 +1,5 @@
 from geopy.distance import vincenty
-from db_schema import MovieTheaters, Movies, db_session
+from db_schema import MovieTheaters, Movies, db_session, TimeSlots
 
 
 class UserRequestFail(Exception):
@@ -14,11 +14,9 @@ class FindTheaterFail(Exception):
 
 # Узнаем id фильма
 def get_movie_id(user_input):
-    output_query = Movies.query.filter(Movies.title.like("%"+user_input[1:]+"%")).all()
-    if len(output_query) == 1:
-        return output_query[0].id
-    else:
-        raise UserRequestFail()
+    movie = Movies.query.filter(Movies.title.ilike("%"+user_input.lower()+"%")).first()
+    if movie:
+        return movie.id
 
 
 # проверяем идет ли указанный пользователем фильм в кинотеатре
@@ -53,6 +51,14 @@ def find_closest_theater(user_coordinates, movie_id):
 # выдаем все расписание кинотеатра в виде листа экземпляров класса TimeSlot
 def get_time_table_of_theater_by_id(movie_theater_id):
     return MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().time_slots
+
+
+def is_movie_has_slots_in_theater_at_period(movie_id, theater_id, date_from, date_to):
+    return TimeSlots.query.filter(
+        MovieTheaters.movie_id == movie_id,
+        MovieTheaters.movie_theter_id == theater_id,
+        MovieTheaters.time.between(date_from, date_to)
+    ).order_by('time').all()
 
 
 # выводим строку человеко-читаемого текста все сеансы фильма, указанного юзером

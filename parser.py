@@ -18,6 +18,23 @@ def get_or_create(current_session, model, **kwargs):
         return instance
 
 
+def get_movie_info(query):
+    raw_page = get_raw_page_from_kinopoisk(query)
+    soup = BeautifulSoup(raw_page)
+
+    title = get_title_from_page(soup)
+    year = get_year_from_page(soup)
+    director = get_director_from_page(soup)
+    cast_list = get_cast_from_page(soup)
+
+    return {
+        'title': title,
+        'year': year,
+        'director': director,
+        'cast_list': cast_list,
+    }
+
+
 get_or_create(db_session, MovieFormats, title="2D")
 get_or_create(db_session, MovieFormats, title="3D")
 
