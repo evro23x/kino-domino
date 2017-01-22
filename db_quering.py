@@ -31,8 +31,20 @@ def is_on_screen(movie_theater_id, movie_id):
 
 def find_closest_theater2(user_coordinates, movie_id):
     theaters_coordinates = db_session.query(MovieTheaters.latitude, MovieTheaters.longitude).all()
-    closest = min(theaters_coordinates, key=lambda coordinates: vincenty(coordinates, user_coordinates).km)
-    return MovieTheaters.query.filter(MovieTheaters.latitude == closest[0], MovieTheaters.longitude == closest[1]).first().id
+    is_theater_found = False
+    while not is_theater_found:
+        if theaters_coordinates:
+            closest_coordinates = min(theaters_coordinates, key=lambda coordinates: vincenty(coordinates, user_coordinates).km)
+            closest_theater_id = MovieTheaters.query.filter(MovieTheaters.latitude == closest_coordinates[0], 
+                MovieTheaters.longitude == closest_coordinates[1]).first().id
+            if is_on_screen(closest_theater_id, movie_id):
+                is_theater_found = True
+                return closest_theater_id
+            else:
+                theaters_coordinates.remove(closest_coordinates)
+        else:
+            raise FindTheaterFail()
+
 
 def find_closest_theater(user_coordinates, movie_id):
     """
@@ -95,5 +107,6 @@ def main_search(user_input, user_coordinates):
 
 if __name__ == '__main__':
     user_coordinates = (55.7846095,37.5880045)
-    movie_id = 5
+    movie_id = 19
     print(find_closest_theater2(user_coordinates, movie_id))
+    #print(find_closest_theater(user_coordinates, movie_id))
