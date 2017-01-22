@@ -29,6 +29,11 @@ def is_on_screen(movie_theater_id, movie_id):
     return is_movie_in_table
 
 
+def find_closest_theater2(user_coordinates, movie_id):
+    theaters_coordinates = db_session.query(MovieTheaters.latitude, MovieTheaters.longitude).all()
+    closest = min(theaters_coordinates, key=lambda coordinates: vincenty(coordinates, user_coordinates).km)
+    return MovieTheaters.query.filter(MovieTheaters.latitude == closest[0], MovieTheaters.longitude == closest[1]).first().id
+
 def find_closest_theater(user_coordinates, movie_id):
     """
         На основе геопозиции пользователя, выводим id
@@ -89,4 +94,6 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
-    pass
+    user_coordinates = (55.7846095,37.5880045)
+    movie_id = 5
+    print(find_closest_theater2(user_coordinates, movie_id))
