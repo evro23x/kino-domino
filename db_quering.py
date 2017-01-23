@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from geopy.distance import vincenty
 from db_schema import MovieTheaters, Movies, db_session, TimeSlots
 
@@ -14,14 +15,14 @@ class FindTheaterFail(Exception):
 
 # Узнаем id фильма
 def get_movie_id(user_input):
-    movie = Movies.query.filter(Movies.title.ilike("%"+user_input.lower()+"%")).first()
+    movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input[1:-1]))).first()
     if movie:
         return movie.id
 
 
-# проверяем идет ли указанный пользователем фильм в кинотеатре
+# надо переписать с учетом дат
 def is_on_screen(movie_theater_id, movie_id):
-    time_table = get_time_table_of_theater_by_id(movie_theater_id)
+    time_table = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().time_slots
     is_movie_in_table = False
     for time_slot in time_table:
         if time_slot.movie_id == movie_id:
@@ -65,33 +66,26 @@ def find_closest_theater(user_coordinates, movie_id):
         raise FindTheaterFail()
 
 
-# выдаем все расписание кинотеатра в виде листа экземпляров класса TimeSlot
-def get_time_table_of_theater_by_id(movie_theater_id):
-    return MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().time_slots
-
-
-def is_movie_has_slots_in_theater_at_period(movie_id, theater_id, date_from, date_to):
+def get_movie_slots_in_theater_at_period(movie_id, theater_id, date_from, date_to):
     return TimeSlots.query.filter(
-        MovieTheaters.movie_id == movie_id,
-        MovieTheaters.movie_theter_id == theater_id,
-        MovieTheaters.time.between(date_from, date_to)
+        TimeSlots.movie_id == movie_id,
+        TimeSlots.movie_theaters_id == theater_id,
+        TimeSlots.time.between(date_from, date_to)
     ).order_by('time').all()
 
 
-# выводим строку человеко-читаемого текста все сеансы фильма, указанного юзером
-def parse_time_table(time_table, movie_id):
+def parse_time_table(time_table):
     movie_theater_id = time_table[0].movie_theaters_id
     movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().title
+    movie_name = Movies.query.filter(Movies.id == time_table[0].movie_id).first().title
     result = "Расписание кинотеатра {} :\n".format(movie_theater_name)
     for time_slot in time_table:
-        if time_slot.movie_id == movie_id:
-            starting_time = time_slot.time
-            movie_name = Movies.query.filter(Movies.id == movie_id).first().title
-            result += "{} в {}\n".format(movie_name, starting_time)
+        starting_time = time_slot.time
+        result += "{} в {}\n".format(movie_name, starting_time)
     return result
 
 
-# итоговая функция
+# итоговая функция поменять datetime(....) на datetime.now() база старая поэтому дату сейчас хардкодим
 def main_search(user_input, user_coordinates):
     try:
         movie_id = get_movie_id(user_input)
@@ -101,12 +95,14 @@ def main_search(user_input, user_coordinates):
         closest_theater_id = find_closest_theater(user_coordinates, movie_id)
     except(FindTheaterFail):
         return "Прости я всего лишь бот, я не нашел кинотеатров где сейчас идет этот фильм!"
-    time_table = get_time_table_of_theater_by_id(closest_theater_id)
-    return parse_time_table(time_table, movie_id)
+    time_table = get_movie_slots_in_theater_at_period(movie_id, closest_theater_id, 
+        datetime(year=2017, month=1, day=19, hour=0),
+        datetime.now()+timedelta(days=3))
+    return parse_time_table(time_table)
 
 
 if __name__ == '__main__':
     user_coordinates = (55.7846095,37.5880045)
-    movie_id = 19
-    print(find_closest_theater2(user_coordinates, movie_id))
+    #print(find_closest_theater2(user_coordinates, movie_id))
     #print(find_closest_theater(user_coordinates, movie_id))
+    # print(main_search("пассажиры", user_coordinates))
