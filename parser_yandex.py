@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
 from datetime import datetime, date, time
-from requets
+# from requets
 
 ITERATIONS = 3
 
@@ -19,6 +19,7 @@ def get_or_create(current_session, model, **kwargs):
 
 
 def get_count_ajax_pages(url):
+    pass
 
 
 
