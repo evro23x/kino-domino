@@ -1,7 +1,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler 
 #from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove #InlineQueryResult
-from db_quering import get_movie_id, is_on_screen, find_closest_theater2, get_movie_slots_in_theater_at_period, parse_time_table, main_search
+from db_quering import get_movie_id, is_on_screen, find_closest_theater2, get_movie_slots_in_theater_at_period, parse_time_table, main_search, UserRequestFail
 
 GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION = range(2)
 
@@ -17,11 +17,26 @@ def greet_user(bot, update):
     bot.sendMessage(update.message.chat_id, text='Привет, друг! Что-то мне подсказывает, что ты хочешь сходить в кино :)  Какой фильм хочешь посмотреть?')
     return  GET_A_MOVIE_NAME
 
+# def is_in_theatres(bot,update):
+#     movie_id = get_movie_id(update.message.text)
+#     if movie_id == None:
+#         bot.sendMessage(update.message.chat_id, text="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
+#         return GET_A_MOVIE_NAME
+#     return 
+
+
 
 def get_a_movie_name(bot, update):  
     global USER_INPUT 
     chat_id = update.message.chat_id
     USER_INPUT[chat_id] = update.message.text
+
+    movie_id = get_movie_id(update.message.text)
+    if movie_id is None:
+        bot.sendMessage(update.message.chat_id, text="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
+        return GET_A_MOVIE_NAME
+
+
     print(USER_INPUT)
     location_keyboard = KeyboardButton(text="Найди кино рядом", request_location=True)
     custom_keyboard = [[ location_keyboard]]
@@ -36,6 +51,8 @@ def get_a_movie_name(bot, update):
 #d = {1:3, 2:4}
 
 #USER_LOCATION{id:coordinates}
+1. посмотреть в кино --- выдаем то, что уже написано
+2. посмотреть дома --- просим ввести название фильма, а мы выдаем похожие фильмы
 
     
 """def ask_for_location(bot, update):
@@ -89,7 +106,9 @@ def main():
 
                 #ASK_FOR_LOCATION: [MessageHandler([Filters.text], ask_for_location)],
 
-                ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analize_user_location)],
+                ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analize_user_location)]
+
+                # IS_IN_THEATRES: [MessageHandler([Filters.text], is_in_theatres)]
 
                 #GIVE_A_MOVIE_LIST: [MessageHandler([Filters.text], give_a_movie_list)],
 
