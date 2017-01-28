@@ -40,17 +40,20 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
     for movie_num in range(from_movie_id, to_movie_id):
         try:
             movie = tmdb.Movies(movie_num)
-            response = movie.info(language="ru-RU")
-            print(movie.title)
-            key_words = movie.keywords()
-            movie_to_add = Movies_tmdb(title=movie.title, genre=movie.genres[0]["name"], keyword1=key_words["keywords"][0]["name"],
-                keyword2=key_words["keywords"][1]["name"],keyword3=key_words["keywords"][2]["name"],
-                keyword4=key_words["keywords"][3]["name"],keyword5=key_words["keywords"][4]["name"],
-                keyword6=key_words["keywords"][5]["name"],keyword7=key_words["keywords"][6]["name"],
-                keyword8=key_words["keywords"][7]["name"],keyword9=key_words["keywords"][8]["name"],
-                keyword10=key_words["keywords"][9]["name"])
-            db_session.add(movie_to_add)
-            time.sleep(1)
+            
+
+
+            # response = movie.info(language="ru-RU")
+            # print(movie.title)
+            # key_words = movie.keywords()
+            # movie_to_add = Movies_tmdb(title=movie.title, genre=movie.genres[0]["name"], keyword1=key_words["keywords"][0]["name"],
+            #     keyword2=key_words["keywords"][1]["name"],keyword3=key_words["keywords"][2]["name"],
+            #     keyword4=key_words["keywords"][3]["name"],keyword5=key_words["keywords"][4]["name"],
+            #     keyword6=key_words["keywords"][5]["name"],keyword7=key_words["keywords"][6]["name"],
+            #     keyword8=key_words["keywords"][7]["name"],keyword9=key_words["keywords"][8]["name"],
+            #     keyword10=key_words["keywords"][9]["name"])
+            # db_session.add(movie_to_add)
+            # time.sleep(1)
         except HTTPError:
             print("we've got 404!")
             continue
@@ -64,6 +67,6 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
 if __name__ == '__main__':
     tmdb.API_KEY = tmdb_api_key
     #add_movies_to_DB(251,300)
-    user_input = ""
+    user_input = "побег"
     print(find_similiar_movie(get_movie_id(user_input)))
     

@@ -43,7 +43,7 @@ class MovieTheaters(Base):
     phone3 = Column(String(500))
     latitude = Column(Float)
     longitude = Column(Float)
-    time_slots = relationship('TimeSlots', backref='time_slots1')
+    time_slots = relationship('TimeSlots', backref='theater')
 
     def __init__(self, metro_id, title=None, address=None, latitude=None, longitude=None,
                  description=None,  phone1=None,  phone2=None,  phone3=None):
