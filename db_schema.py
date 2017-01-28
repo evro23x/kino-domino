@@ -89,7 +89,7 @@ class Movies(Base):
     duration = Column(String(120))
     start_date = Column(String(120))
     rating = Column(String(120))
-    time_slots = relationship('TimeSlots', backref='time_slots2')
+    time_slots = relationship('TimeSlots', backref='movie')
 
     def __init__(self, title=None):
         self.title = title
@@ -102,7 +102,7 @@ class MovieFormats(Base):
     __tablename__ = "movie_formats"
     id = Column(Integer, primary_key=True)
     title = Column(String(120))
-    time_slots = relationship('TimeSlots', backref='time_slots3')
+    time_slots = relationship('TimeSlots', backref='movie_format')
 
     def __init__(self, title=None):
         self.title = title
