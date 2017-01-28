@@ -62,7 +62,7 @@ def analize_user_location(bot, update):
 
 
 def cancel(bot, update):
-    bot.sendMessage(update.message.chat_id,'Bye! I hope we can talk again some day.',
+    bot.sendMessage(update.message.chat_id,'Пока! Надеюсь, я помог тебе!',
                               reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END
