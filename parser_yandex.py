@@ -9,16 +9,6 @@ import requests
 ITERATIONS = 3
 
 
-# print(db_session.query(MetroStations).all())
-
-# for instance in db_session.query(MetroStations).order_by(MetroStations.id):
-#     print(instance.id, instance.title, instance.latitude, instance.longitude)
-# print(MetroStations.query.filter().all())
-
-
-# exit(0)
-
-
 def get_or_create(current_session, model, **kwargs):
     instance = current_session.query(model).filter_by(**kwargs).first()
     if instance:
@@ -51,43 +41,89 @@ def get_list_cinema():
 
 def check_cinema_in_db():
     for cinema in get_list_cinema():
-        if cinema['phones'] and len(cinema['phones']) != 0:
-            phone1 = cinema['phones'][0]['numbers']
-        else:
-            phone1 = ''
 
-        if cinema['metro'] and len(cinema['metro']) != 0:
+        phones = ['', '', '']
+        if cinema['phones'] and len(cinema['phones']) != 0:
+            for i in range(len(cinema['phones'][0]['numbers'])):
+                phones[i] = cinema['phones'][0]['numbers'][i]
+
+        if cinema['metro']:
             metro_stations = MetroStations.query.filter(
                 MetroStations.title.ilike("%{}%".format(cinema['metro'][0]['name']))).first()
-        else:
-            metro_stations = get_closest_metro(get_list_metro_station(),
-                                               cinema['coordinates']['latitude'], cinema['coordinates']['longitude'])
-            print(metro_stations)
 
-        print(phone1)
-        # print(metro_stations.id)
-        print('++++++++++++++++++++++++++++++++')
-        # break
+        if len(cinema['metro']) > 0 and metro_stations is not None:
+            metro_st_id = metro_stations.id
+        else:
+            closest_metro_station = get_closest_metro_station(get_metro_stations_from_db(),
+                                                              float(cinema['coordinates']['latitude']),
+                                                              float(cinema['coordinates']['longitude']))
+            metro_st_id = closest_metro_station['id']
+
+        # print(cinema['title'])
+        # print(metro_st_id)
         # print(cinema['coordinates']['latitude'])
         # print(cinema['coordinates']['longitude'])
-        # break
-        #
-        # get_or_create(db_session, MovieTheaters,
-        #               metro_id=metro_id,
-        #               title=cinema['title'],
-        #               latitude=cinema['coordinates']['latitude'],
-        #               longitude=cinema['coordinates']['longitude'],
-        #               address=cinema['address'],
-        #               description="",
-        #               phone1=phone1)
+        # print(cinema['address'])
+        # print(phones[0])
+        # print(phones[1])
+        # print(phones[2])
+        # print(metro_stations.id)
+        # print('++++++++++++++++++++++++++++++++')
+        get_or_create(db_session, MovieTheaters,
+                      metro_id=metro_st_id,
+                      title=cinema['title'],
+                      latitude=cinema['coordinates']['latitude'],
+                      longitude=cinema['coordinates']['longitude'],
+                      address=cinema['address'],
+                      description="",
+                      phone1=phones[0],
+                      phone2=phones[1],
+                      phone3=phones[2],
+                      )
+    # exit()
 
 
-def get_closest_metro(data, latitude, longitude):
-    return min(data, key=lambda data: get_distance(latitude, longitude, data['coordinates']))
+def get_metro_stations_from_db():
+    metro_list = []
+    for u in db_session.query(MetroStations).all():
+        result = {
+            'id': u.__dict__['id'],
+            'title': u.__dict__['title'],
+            'latitude': u.__dict__['latitude'],
+            'longitude': u.__dict__['longitude'],
+        }
+        metro_list.append(result)
+    return metro_list
+
+    # title = (u.__dict__['title'])
+
+    # for instance in db_session.query(MetroStations).order_by(MetroStations.id):
+    #     print(instance.id, instance.title, instance.latitude, instance.longitude)
+
+    # raw_page = get_raw_page_from_afisha_yandex(query)
+    # soup = BeautifulSoup(raw_page)
+    #
+    # title = get_title_from_page(soup)
+    # year = get_year_from_page(soup)
+    # director = get_director_from_page(soup)
+    # cast_list = get_cast_from_page(soup)
+    #
+    # return {
+    #     'title': title,
+    #     'year': year,
+    #     'director': director,
+    #     'cast_list': cast_list,
+    # }
 
 
-def get_distance(x1, y1, point):
-    return sqrt((x1 - point[0]) ** 2 + (y1 - point[1]) ** 2)
+def get_closest_metro_station(data, latitude, longitude):
+    # print(data)
+    # return min(data, key=lambda data1: data1['latitude'])
+    return min(data, key=lambda data: get_distance(latitude, longitude, data['latitude'], data['longitude']))
+
+
+def get_distance(x1, y1, point_x1, point_y1):
+    return sqrt((x1 - point_x1) ** 2 + (y1 - point_y1) ** 2)
 
 
 def get_count_ajax_pages(url):
@@ -137,7 +173,7 @@ get_or_create(db_session, MovieFormats, title="3D")
 
 
 def main():
-    # check_metro_in_db()
+    check_metro_in_db()
     check_cinema_in_db()
 
 
