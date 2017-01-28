@@ -1,5 +1,4 @@
 from math import sqrt
-
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
@@ -78,8 +77,7 @@ def check_cinema_in_db():
                       description="",
                       phone1=phones[0],
                       phone2=phones[1],
-                      phone3=phones[2],
-                      )
+                      phone3=phones[2])
     # exit()
 
 
@@ -95,39 +93,13 @@ def get_metro_stations_from_db():
         metro_list.append(result)
     return metro_list
 
-    # title = (u.__dict__['title'])
-
-    # for instance in db_session.query(MetroStations).order_by(MetroStations.id):
-    #     print(instance.id, instance.title, instance.latitude, instance.longitude)
-
-    # raw_page = get_raw_page_from_afisha_yandex(query)
-    # soup = BeautifulSoup(raw_page)
-    #
-    # title = get_title_from_page(soup)
-    # year = get_year_from_page(soup)
-    # director = get_director_from_page(soup)
-    # cast_list = get_cast_from_page(soup)
-    #
-    # return {
-    #     'title': title,
-    #     'year': year,
-    #     'director': director,
-    #     'cast_list': cast_list,
-    # }
-
 
 def get_closest_metro_station(data, latitude, longitude):
-    # print(data)
-    # return min(data, key=lambda data1: data1['latitude'])
     return min(data, key=lambda data: get_distance(latitude, longitude, data['latitude'], data['longitude']))
 
 
 def get_distance(x1, y1, point_x1, point_y1):
     return sqrt((x1 - point_x1) ** 2 + (y1 - point_y1) ** 2)
-
-
-def get_count_ajax_pages(url):
-    pass
 
 
 def get_raw_page_from_afisha_yandex(url):
@@ -173,8 +145,12 @@ get_or_create(db_session, MovieFormats, title="3D")
 
 
 def main():
+    # print(get_list_cinema())
     check_metro_in_db()
     check_cinema_in_db()
+
+    # print(get_raw_page_from_afisha_yandex(
+    #     'https://afisha.yandex.ru/places/554c5ecb179b116662abdb03?city=moscow&place-schedule-preset=today'))
 
 
 if __name__ == '__main__':
