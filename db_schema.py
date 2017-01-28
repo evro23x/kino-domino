@@ -16,7 +16,7 @@ Base.query = db_session.query_property()
 class MetroStations(Base):
     __tablename__ = 'metro_stations'
     id = Column(Integer, primary_key=True)
-    title = Column(String(50), unique=True)
+    title = Column(String(50))
     latitude = Column(Float)
     longitude = Column(Float)
     district = Column(String(50))
@@ -27,8 +27,8 @@ class MetroStations(Base):
         self.latitude = latitude
         self.longitude = longitude
 
-    def __repr__(self):
-        return '<{} metro station>'.format(self.title)
+    # def __repr__(self):
+    #     return '<{} metro station>'.format(self.title)
 
 
 class MovieTheaters(Base):

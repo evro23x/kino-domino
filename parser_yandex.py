@@ -1,8 +1,9 @@
+from math import sqrt
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
-from datetime import datetime, date, time
-from requets
+# from datetime import datetime, date, time
+import requests
 
 ITERATIONS = 3
 
@@ -18,8 +19,87 @@ def get_or_create(current_session, model, **kwargs):
         return instance
 
 
-def get_count_ajax_pages(url):
+def get_list_metro_station():
+    return requests.get('https://api.hh.ru/metro/1').json()
 
+
+def check_metro_in_db():
+    for metro in get_list_metro_station()['lines']:
+        print(metro['name'])
+        for station in metro['stations']:
+            get_or_create(db_session, MetroStations,
+                          title=station['name'],
+                          latitude=station['lat'],
+                          longitude=station['lng'])
+
+
+def get_list_cinema():
+    payload = {'limit': 200, 'offset': 0, 'city': 'moscow'}
+    return requests.get('https://afisha.yandex.ru/api/events/cinema/places', params=payload).json()['items']
+
+
+def check_cinema_in_db():
+    for cinema in get_list_cinema():
+
+        phones = ['', '', '']
+        if cinema['phones'] and len(cinema['phones']) != 0:
+            for i in range(len(cinema['phones'][0]['numbers'])):
+                phones[i] = cinema['phones'][0]['numbers'][i]
+
+        if cinema['metro']:
+            metro_stations = MetroStations.query.filter(
+                MetroStations.title.ilike("%{}%".format(cinema['metro'][0]['name']))).first()
+
+        if len(cinema['metro']) > 0 and metro_stations is not None:
+            metro_st_id = metro_stations.id
+        else:
+            closest_metro_station = get_closest_metro_station(get_metro_stations_from_db(),
+                                                              float(cinema['coordinates']['latitude']),
+                                                              float(cinema['coordinates']['longitude']))
+            metro_st_id = closest_metro_station['id']
+
+        # print(cinema['title'])
+        # print(metro_st_id)
+        # print(cinema['coordinates']['latitude'])
+        # print(cinema['coordinates']['longitude'])
+        # print(cinema['address'])
+        # print(phones[0])
+        # print(phones[1])
+        # print(phones[2])
+        # print(metro_stations.id)
+        # print('++++++++++++++++++++++++++++++++')
+        get_or_create(db_session, MovieTheaters,
+                      metro_id=metro_st_id,
+                      title=cinema['title'],
+                      latitude=cinema['coordinates']['latitude'],
+                      longitude=cinema['coordinates']['longitude'],
+                      address=cinema['address'],
+                      description="",
+                      phone1=phones[0],
+                      phone2=phones[1],
+                      phone3=phones[2])
+    # exit()
+
+
+def get_metro_stations_from_db():
+    metro_list = []
+    for u in db_session.query(MetroStations).all():
+        result = {
+            'id': u.__dict__['id'],
+            'title': u.__dict__['title'],
+            'latitude': u.__dict__['latitude'],
+            'longitude': u.__dict__['longitude'],
+        }
+        metro_list.append(result)
+    return metro_list
+
+
+def get_closest_metro_station(data, latitude, longitude):
+    return min(data, key=lambda data: get_distance(latitude, longitude, data['latitude'], data['longitude']))
+
+
+def get_distance(x1, y1, point_x1, point_y1):
+    return sqrt((x1 - point_x1) ** 2 + (y1 - point_y1) ** 2)
 
 
 def get_raw_page_from_afisha_yandex(url):
@@ -65,9 +145,12 @@ get_or_create(db_session, MovieFormats, title="3D")
 
 
 def main():
-    theaters_list_page = get_raw_page_from_afisha_yandex("https://afisha.yandex.ru/events/cinema/places?city=moscow&page=11")
-    for theater in theaters_list_page.findAll('div', {'class': 'place-card places-list__item content-places__item'}):
-        print(theater.find('h2', {'class': 'place-card__title'}).contents[0])
+    # print(get_list_cinema())
+    check_metro_in_db()
+    check_cinema_in_db()
+
+    # print(get_raw_page_from_afisha_yandex(
+    #     'https://afisha.yandex.ru/places/554c5ecb179b116662abdb03?city=moscow&place-schedule-preset=today'))
 
 
 if __name__ == '__main__':
