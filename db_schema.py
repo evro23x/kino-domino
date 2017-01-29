@@ -86,6 +86,7 @@ class TimeSlots(Base):
 class Movies(Base):
     __tablename__ = "movies"
     id = Column(Integer, primary_key=True)
+    yandex_movie_id = Column(String(140))
     title = Column(String(120))
     description = Column(Text)
     duration = Column(String(120))
@@ -93,8 +94,11 @@ class Movies(Base):
     rating = Column(String(120))
     time_slots = relationship('TimeSlots', backref='movie')
 
-    def __init__(self, title=None):
+    def __init__(self, yandex_movie_id=None, title=None, start_date=None, rating=None):
+        self.yandex_movie_id = yandex_movie_id
         self.title = title
+        self.start_date = start_date
+        self.rating = rating
 
     def __repr__(self):
         return '<{}>'.format(self.title)

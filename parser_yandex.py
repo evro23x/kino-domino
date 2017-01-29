@@ -2,8 +2,9 @@ from math import sqrt
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
-# from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import requests
+import json
 
 ITERATIONS = 3
 
@@ -101,27 +102,19 @@ def get_distance(x1, y1, point_x1, point_y1):
 
 
 def check_movie_in_db():
-    url_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=20&offset=0&tag=cinema' \
-                     '&hasMixed=0&date=2017-01-31&period=1&city=moscow'
-    movie_list = get_json_from_url(url_movie_list)
-    count_movies = movie_list['paging']['total']
-    for movie in movie_list['data']:
-        print(movie)
-        exit(0)
-        get_or_create(db_session, Movies,
-                      title=movie['event']['title'],
-                      description=movie['event']['dateReleased'],
-                      duration=movie,
-                      start_date=movie,
-                      rating=movie)
-
-# получить айди кинотеатра из базы
-# получить дату на которую будет парситься
-# сформировать ссылку для парсинга и спарсить html
-# получить из html название фильма
-# получить из html формат показа фильма
-# получить из html сеанс фильма
-# получить из html стоимость сеанса
+    for i in range(6):
+        # date_for_url = str(date.today() + timedelta(0))
+        url_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset='+str(i*12)+'&tag=cinema' \
+                         '&hasMixed=0&date='+str(date.today())+'&period=1&city=moscow'
+        movie_list = get_json_from_url(url_movie_list)
+        for movie in movie_list['data']:
+            # print(json.dumps(movie, sort_keys=True, indent=4, ensure_ascii=False))
+            print('Парсим фильм {}'.format(movie['event']['title']))
+            get_or_create(db_session, Movies,
+                          yandex_movie_id=movie['event']['id'],
+                          title=movie['event']['title'],
+                          start_date=movie['scheduleInfo']['dateReleased'],
+                          rating=str(movie['rank']))
 
 
 def get_raw_page_from_afisha_yandex(url):
@@ -167,14 +160,10 @@ get_or_create(db_session, MovieFormats, title="3D")
 
 
 def main():
-    pass
-    # print(get_list_cinema())
+    # pass
     # check_metro_in_db()
     # check_cinema_in_db()
-    # print(check_movie_in_db())
-
-    # print(get_raw_page_from_afisha_yandex(
-    #     'https://afisha.yandex.ru/places/554c5ecb179b116662abdb03?city=moscow&place-schedule-preset=today'))
+    check_movie_in_db()
 
 
 if __name__ == '__main__':
