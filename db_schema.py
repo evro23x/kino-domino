@@ -35,6 +35,7 @@ class MovieTheaters(Base):
     __tablename__ = 'movie_theaters'
     id = Column(Integer, primary_key=True)
     metro_id = Column(Integer, ForeignKey('metro_stations.id'))
+    yandex_theater_id = Column(String(140))
     title = Column(String(140))
     address = Column(String(500))
     description = Column(Text)
@@ -45,9 +46,10 @@ class MovieTheaters(Base):
     longitude = Column(Float)
     time_slots = relationship('TimeSlots', backref='theater')
 
-    def __init__(self, metro_id, title=None, address=None, latitude=None, longitude=None,
+    def __init__(self, metro_id, yandex_theater_id=None, title=None, address=None, latitude=None, longitude=None,
                  description=None,  phone1=None,  phone2=None,  phone3=None):
         self.metro_id = metro_id
+        self.yandex_theater_id = yandex_theater_id
         self.title = title
         self.address = address
         self.latitude = latitude
