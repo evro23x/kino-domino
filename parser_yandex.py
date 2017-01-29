@@ -102,7 +102,10 @@ def get_distance(x1, y1, point_x1, point_y1):
 
 
 def check_movie_in_db():
-    for i in range(6):
+    test_url_movie_list = 'https://afisha.yandex.ru/api/events/actual?' \
+                          'limit=12&offset=12&tag=cinema&hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
+    movie_list = get_json_from_url(test_url_movie_list)
+    for i in range(int(movie_list['paging']['total'] / 12 + 1)):
         # date_for_url = str(date.today() + timedelta(0))
         url_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset='+str(i*12)+'&tag=cinema' \
                          '&hasMixed=0&date='+str(date.today())+'&period=1&city=moscow'
