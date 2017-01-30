@@ -72,8 +72,9 @@ def main_search(user_input, user_coordinates):
 if __name__ == '__main__':
     user_coordinates = (55.7846095,37.5880045)
     movie_id = 14
-    print(find_closest_theater(user_coordinates, movie_id))
-    #print(main_search("изгой", user_coordinates))
+    #print(find_closest_theater(user_coordinates, movie_id))
+    user_input = "пассажиры"
+    print(main_search(user_input, user_coordinates))
     
     #movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id).all()
     #print(movie_slots[0].theater.latitude)

@@ -35,7 +35,7 @@ class MovieTheaters(Base):
     __tablename__ = 'movie_theaters'
     id = Column(Integer, primary_key=True)
     metro_id = Column(Integer, ForeignKey('metro_stations.id'))
-    yandex_theater_id = Column(String(140))
+    #yandex_theater_id = Column(String(140))
     title = Column(String(140))
     address = Column(String(500))
     description = Column(Text)
@@ -86,7 +86,7 @@ class TimeSlots(Base):
 class Movies(Base):
     __tablename__ = "movies"
     id = Column(Integer, primary_key=True)
-    yandex_movie_id = Column(String(140))
+    #yandex_movie_id = Column(String(140))
     title = Column(String(120))
     description = Column(Text)
     duration = Column(String(120))
