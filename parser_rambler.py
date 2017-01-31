@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 
 COUNTER = 0
 ITERATIONS = 3
@@ -42,7 +42,7 @@ try:
 
             if cinema_info[0] == "+":
                 phone1 = cinema_info[:cinema_info.find(',')]
-                address = cinema_info[cinema_info.find(',')+2:]
+                address = cinema_info[cinema_info.find(',') + 2:]
                 if address[0] == "+":
                     phone2 = address[:address.find(',')]
                     address = address[address.find(',') + 2:]
@@ -63,19 +63,11 @@ try:
                                     phone2=phone2,
                                     phone3=phone3)
 
-            pattern_url_table = 'https://www.afisha.ru/msk/schedule_cinema_place/'
-            url_cinema = div_cinema.find('a')['href']
-            id_cinema = url_cinema[url_cinema[0:-1].rfind('/') + 1:-1]
-
             counter = 0
             while counter < ITERATIONS:
-                session_date = date(date.today().year, date.today().month, day=date.today().day + counter)
-
-                date_for_url = '/' + str(session_date.day) + \
-                               '-' + str(session_date.month) + \
-                               '-' + str(session_date.year) + '/'
-                print("Парсим - {}, расписание на - {}".format(movie_title, date_for_url[1:-1]))
-                url_table = pattern_url_table + id_cinema + date_for_url
+                session_date = date.today() + timedelta(counter)
+                url_time_slot = str(div_cinema.find('a')['href']).replace('/cinema/', '/schedule_cinema_place/')
+                url_table = 'http:' + url_time_slot + session_date.strftime('%d-%m-%Y')
                 link_to_cinema = BeautifulSoup(urlopen(url_table).read(), 'lxml')
                 film_name_saver = ""
                 # проверка необходима чтобы парсер не валился на 3D фильмах
@@ -123,8 +115,10 @@ try:
                                                        movie_id=movie.id,
                                                        movie_formats_id=format_id,
                                                        time=datetime.combine(session_date, session_time))
+
+                    print("Парсим - {}, на - {} - success".format(movie_title, session_date.strftime('%d-%m-%Y')))
                 except AttributeError:
-                    print("Расписание на {} отсутствует для данного кинотеатра".format(date_for_url[1:-1]))
+                    print("Парсим - {}, на - {} - fail".format(movie_title, session_date.strftime('%d-%m-%Y')))
                 counter += 1
 except KeyboardInterrupt:
     print()
