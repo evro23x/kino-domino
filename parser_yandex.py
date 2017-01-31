@@ -168,6 +168,7 @@ def main():
     # check_cinema_in_db()
     check_movie_in_db()
     # test test test
+    # test for commit
 
 
 if __name__ == '__main__':
