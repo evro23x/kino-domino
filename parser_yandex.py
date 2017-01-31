@@ -102,22 +102,34 @@ def get_distance(x1, y1, point_x1, point_y1):
 
 
 def check_movie_in_db():
-    test_url_movie_list = 'https://afisha.yandex.ru/api/events/actual?' \
-                          'limit=12&offset=12&tag=cinema&hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
-    movie_list = get_json_from_url(test_url_movie_list)
-    for i in range(int(movie_list['paging']['total'] / 12 + 1)):
-        # date_for_url = str(date.today() + timedelta(0))
-        url_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset='+str(i*12)+'&tag=cinema' \
-                         '&hasMixed=0&date='+str(date.today())+'&period=1&city=moscow'
-        movie_list = get_json_from_url(url_movie_list)
-        for movie in movie_list['data']:
-            # print(json.dumps(movie, sort_keys=True, indent=4, ensure_ascii=False))
-            print('Парсим фильм {}'.format(movie['event']['title']))
-            get_or_create(db_session, Movies,
-                          yandex_movie_id=movie['event']['id'],
-                          title=movie['event']['title'],
-                          start_date=movie['scheduleInfo']['dateReleased'],
-                          rating=str(movie['rank']))
+    # Комент для себя =) чтобы потом вспомнить как это работает.
+    # Собираем сначала список новых фильмов(премьерных) + первая страница всех остальных
+    # склеиваем два списка и отправляется в цикл по перебору всех страниц списка фильмов
+    # далее итоговый список всех фильмов перебираем и складываем в базу
+    # TODO дублирующие записи в таблице фильмов из-за изменения рейтинга(при запуске парсера)
+    # рейтинг часто меняется и каждый раз при запуске парсера добавляется
+    # дублирующая запись в таблицу фильмов, отличие только в рейтинге фильма -> hotfix!
+
+    url_new_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset=0&tag=cinema&hasMixed=0&' \
+                         'filter=week-premiere&city=moscow'
+    new_movie_list = get_json_from_url(url_new_movie_list)
+    # print(json.dumps(new_movie_list, sort_keys=True, indent=4, ensure_ascii=False))
+
+    url_movie_list = 'https://afisha.yandex.ru/api/events/actual?' \
+                     'limit=12&offset=0&tag=cinema&hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
+    first_query_json = get_json_from_url(url_movie_list)
+    movie_list = new_movie_list['data'] + first_query_json['data']
+    for i in range(int(first_query_json['paging']['total'] / 12 + 1)):
+        url_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset=' + str(i * 12) + '&tag=cinema&' \
+                            'hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
+        movie_list = movie_list + get_json_from_url(url_movie_list)['data']
+    for movie in movie_list:
+        print('Парсим фильм {}'.format(movie['event']['title']))
+        get_or_create(db_session, Movies,
+                      yandex_movie_id=movie['event']['id'],
+                      title=movie['event']['title'],
+                      start_date=movie['scheduleInfo']['dateReleased'],
+                      rating=str(movie['rank']))
 
 
 def get_raw_page_from_afisha_yandex(url):
