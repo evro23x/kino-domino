@@ -119,68 +119,49 @@ def check_movie_in_db():
                      'limit=12&offset=0&tag=cinema&hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
     first_query_json = get_json_from_url(url_movie_list)
     movie_list = new_movie_list['data'] + first_query_json['data']
+    movies_id = []
     for i in range(int(first_query_json['paging']['total'] / 12 + 1)):
         url_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset=' + str(i * 12) + '&tag=cinema&' \
-                            'hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
+                                                                                                       'hasMixed=0&date=' + str(
+            date.today()) + '&period=1&city=moscow'
         movie_list = movie_list + get_json_from_url(url_movie_list)['data']
     for movie in movie_list:
-        print('Парсим фильм {}'.format(movie['event']['title']))
+        movies_id.append(movie['event']['id'])
+        # print('Парсим фильм {}'.format(movie['event']['title']))
         get_or_create(db_session, Movies,
                       yandex_movie_id=movie['event']['id'],
                       title=movie['event']['title'],
                       start_date=movie['scheduleInfo']['dateReleased'],
                       rating=str(movie['rank']))
+    return movies_id
 
 
-def get_raw_page_from_afisha_yandex(url):
-    # return BeautifulSoup(urlopen('https://www.afisha.ru/msk/cinema/').read(), "lxml")
-    return BeautifulSoup(urlopen(url).read(), "lxml")
+def get_theater_id_by_yandex_id(yandex_theater_id):
+    theater = db_session.query(MovieTheaters).filter_by(yandex_theater_id=yandex_theater_id).first()
+    return theater.id
 
 
-def get_title_from_page(soup):
-    return True
+def check_time_slot_in_db(movies_id):
+    for id_hash in movies_id:
 
 
-def get_year_from_page(soup):
-    return True
+        # q1 = 'https://afisha.yandex.ru/api/events/588093b16ee3dafd80de5a85/schedule_cinema?limit=10&offset=0&date=2017-01-31&city=moscow'
 
+        movie_format = get_or_create(db_session, MovieFormats, title="2D")
 
-def get_director_from_page(soup):
-    return True
-
-
-def get_cast_from_page(soup):
-    return True
-
-
-def get_movie_info(query):
-    raw_page = get_raw_page_from_afisha_yandex(query)
-    soup = BeautifulSoup(raw_page)
-
-    title = get_title_from_page(soup)
-    year = get_year_from_page(soup)
-    director = get_director_from_page(soup)
-    cast_list = get_cast_from_page(soup)
-
-    return {
-        'title': title,
-        'year': year,
-        'director': director,
-        'cast_list': cast_list,
-    }
-
-
-get_or_create(db_session, MovieFormats, title="2D")
-get_or_create(db_session, MovieFormats, title="3D")
+        get_or_create(db_session, TimeSlots,
+                      movie_theaters_id=get_theater_id_by_yandex_id('57f00f0c832301dcab756291'),
+                      movie_id=movie.id,
+                      movie_formats_id=movie_format.id,
+                      time=datetime.combine(session_date, session_time))
 
 
 def main():
     # pass
     # check_metro_in_db()
     # check_cinema_in_db()
-    check_movie_in_db()
-    # test test test
-    # test for commit
+    movies_id_list = check_movie_in_db()
+    check_time_slot_in_db(movies_id_list)
 
 
 if __name__ == '__main__':
