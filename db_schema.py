@@ -70,14 +70,17 @@ class TimeSlots(Base):
     movie_id = Column(Integer, ForeignKey('movies.id'))
     movie_formats_id = Column(Integer, ForeignKey('movie_formats.id'))
     time = Column(DateTime)
-    cost = Column(Float)
+    max_price = Column(Integer())
+    min_price = Column(Integer())
 
-    def __init__(self, movie_theaters_id=None, movie_id=None, movie_formats_id=None, time=None, cost=None):
+    def __init__(self, max_price=None, min_price=None, movie_theaters_id=None, movie_id=None,
+                 movie_formats_id=None, time=None):
         self.movie_theaters_id = movie_theaters_id
         self.movie_id = movie_id
         self.movie_formats_id = movie_formats_id
         self.time = time
-        # self.cost = cost
+        self.max_price = max_price
+        self.min_price = min_price
 
     def __repr__(self):
         return '< {} at {} in {} >'.format(self.movie_id, self.time, self.movie_theaters_id)
