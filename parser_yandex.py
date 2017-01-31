@@ -167,6 +167,7 @@ def main():
     # check_metro_in_db()
     # check_cinema_in_db()
     check_movie_in_db()
+    # test test test
 
 
 if __name__ == '__main__':
