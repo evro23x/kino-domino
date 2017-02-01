@@ -59,17 +59,6 @@ def check_cinema_in_db(all_metro):
             for metro in all_metro:
                 if metro.title == cinema['metro'][0]['name']:
                     metro_st_id = metro.id
-
-        # print(cinema['id'])
-        # print(metro_st_id)
-        # print(cinema['coordinates']['latitude'])
-        # print(cinema['coordinates']['longitude'])
-        # print(cinema['address'])
-        # print(phones[0])
-        # print(phones[1])
-        # print(phones[2])
-        # print('++++++++++++++++++++++++++++++++')
-        # exit()
         print('Парсим всю инфу по кт - {}'.format(cinema['title']))
         cinema_list.append(get_or_create(db_session, MovieTheaters,
                                          metro_id=metro_st_id,
@@ -82,7 +71,6 @@ def check_cinema_in_db(all_metro):
                                          phone1=phones[0],
                                          phone2=phones[1],
                                          phone3=phones[2]))
-        # exit()
     return cinema_list
 
 
@@ -154,141 +142,63 @@ def get_movie_id_by_yandex_id(yandex_movie_id):
 
 
 def check_time_slot_in_db(movies_id):
-    if DEBUG:
-        print('начало начал')
-    # q1 = 0
-    for yandex_movie_id in movies_id:
-        # q1 += 1
-        # if q1 == 2:
-        #     exit()
+    for yandex_movie_id in list(set(movies_id)):
         movie = get_movie_id_by_yandex_id(yandex_movie_id)
         print('Собираем расписание по фильму - {}'.format(movie.title))
-        # if yandex_movie_id == '5587e3c1cc1c7211b4ea81d3':
-        #     continue
-        if DEBUG:
-            print('начинаем разбирать фильм')
         for counter in range(ITERATIONS):
-            if DEBUG:
-                print('пришли в вайл')
             session_date = date.today() + timedelta(counter)
-            print(session_date)
+            print('На дату - {}'.format(session_date))
 
             header = 'https://afisha.yandex.ru/api/events/'
             date_params = '&date=' + str(session_date) + '&city=moscow'
             first_query_url = header + yandex_movie_id + '/schedule_cinema?limit=10&offset=0' + date_params
 
             first_query_result = get_json_from_url(first_query_url)
-
             paging_count = first_query_result['schedule']['paging']['total']
-            # time_slot_list = first_query_result['schedule']['items']
-
-            # print(range(int(paging_count / 10 + 1)))
-            # exit()
 
             # условие на случай если у фильма будет 0 сеансов за день(часто бывает у премьер)
             if paging_count == 0:
-                if DEBUG:
-                    print('проскочил в континуе')
                 continue
-
             time_slot_list = []
-            # time_slot_list = [first_query_result['schedule']['items']]
-            # print(json.dumps(time_slot_list, sort_keys=True, indent=4, ensure_ascii=False))
-            # exit()
-
             for i in range(int(paging_count / 10 + 1)):
-                # print(json.dumps(time_slot_list, sort_keys=True, indent=4, ensure_ascii=False))
-                # exit()
-                if DEBUG:
-                    print('зашел в фор, страницы сеансов собираю ')
                 limit_offset = '/schedule_cinema?limit=10&offset=' + str(i * 10)
                 paging_time_slot_url = header + yandex_movie_id + limit_offset + date_params
-
-                # print(paging_count)
-                # print(int(paging_count / 10 + 1))
-                # print(i)
-                # print(i*10)
-                # print(paging_time_slot_url)
-                # print('================================================================================')
-
                 paging_time_slot_result = get_json_from_url(paging_time_slot_url)
-
                 for raw in paging_time_slot_result['schedule']['items']:
                     time_slot_list.append(raw)
-
-            # print(json.dumps(time_slot_list, sort_keys=True, indent=4, ensure_ascii=False))
-            # print(json.dumps(get_json_from_url(url)['schedule'], sort_keys=True, indent=4, ensure_ascii=False))
-            # exit()
-
             for time_slot in time_slot_list:
-                if DEBUG:
-                    print('зашел в фор')
-
-                # print(time_slot)
-                # exit()
                 theater_id_from_json = time_slot['place']['id']
+                # print(json.dumps(time_slot, sort_keys=True, indent=4, ensure_ascii=False))
                 theater = get_theater_id_by_yandex_id(theater_id_from_json)
 
                 # условие на случай если кинотеатра не будет в перечне кт(такое редко, но бывает)
                 if theater is None:
                     continue
+                for movie_formats_separated in time_slot['schedule']:
+                    movie_format_from_json = movie_formats_separated['format']['name']
+                    movie_format = get_or_create(db_session, MovieFormats, title=movie_format_from_json)
+                    for session in movie_formats_separated['sessions']:
+                        datetime_from_json = session['datetime']
+                        ticket = session['ticket']
+                        if ticket is None or ticket['price'] is None:
+                            max_price_from_json = 0
+                            min_price_from_json = 0
+                        else:
+                            max_price_from_json = ticket['price']['max']
+                            min_price_from_json = ticket['price']['min']
 
-                # if time_slot['schedule'][0]['sessions'][0]['ticket'] is not None:
-                #     print('if')
-                #     print(time_slot['schedule'][0]['sessions'][0]['ticket'])
-                #     print('++++++++++++++++++++++++++++++++')
-                #     print('')
-                # else:
-                #     print('else')
-                #     print(time_slot['schedule'][0]['sessions'])
-                #     print('++++++++++++++++++++++++++++++++')
-                #     print('')
-
-                # exit()
-                movie_format_from_json = time_slot['schedule'][0]['format']['name']
-                datetime_from_json = time_slot['schedule'][0]['sessions'][0]['datetime']
-                ticket = time_slot['schedule'][0]['sessions'][0]['ticket']
-                if ticket is None or ticket['price'] is None:
-                    max_price_from_json = 0
-                    min_price_from_json = 0
-                else:
-                    max_price_from_json = ticket['price']['max']
-                    min_price_from_json = ticket['price']['min']
-
-                movie_format = get_or_create(db_session, MovieFormats, title=movie_format_from_json)
-
-                # print(theater_id_from_json)
-                # print(theater_id)
-                # print(get_movie_id_by_yandex_id(yandex_movie_id))
-                # print(movie_format.id)
-                # print(datetime.strptime(datetime_from_json, "%Y-%m-%dT%H:%M:%S"))
-                # print(max_price_from_json)
-                # print(min_price_from_json)
-                # print('++++++++++++++++++++++++++++++++')
-                # print('')
-                # exit()
-                #
-
-                get_or_create(db_session, TimeSlots,
-                              movie_theaters_id=theater.id,
-                              movie_id=movie.id,
-                              movie_formats_id=movie_format.id,
-                              time=datetime.strptime(datetime_from_json, "%Y-%m-%dT%H:%M:%S"),
-                              max_price=max_price_from_json,
-                              min_price=min_price_from_json)
+                        get_or_create(db_session, TimeSlots,
+                                      movie_theaters_id=theater.id,
+                                      movie_id=movie.id,
+                                      movie_formats_id=movie_format.id,
+                                      time=datetime.strptime(datetime_from_json, "%Y-%m-%dT%H:%M:%S"),
+                                      max_price=max_price_from_json,
+                                      min_price=min_price_from_json)
 
 
 def main():
-    # ww22 = '588a31b4cc1c72457c7e7ca8'
-    # ww33 = '554c5ecb179b116662abdb03'
-    # print(get_theater_id_by_yandex_id(ww22))
-    # print(get_theater_id_by_yandex_id(ww33))
-    # print(type(get_theater_id_by_yandex_id(ww22)))
-    # print(type(get_theater_id_by_yandex_id(ww33)))
-
-    # pass
-    # all_metro = check_metro_in_db()
-    # check_cinema_in_db(all_metro)
+    all_metro = check_metro_in_db()
+    check_cinema_in_db(all_metro)
     movies_id_list = check_movie_in_db()
     check_time_slot_in_db(movies_id_list)
 
