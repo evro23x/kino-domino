@@ -35,7 +35,7 @@ class MovieTheaters(Base):
     __tablename__ = 'movie_theaters'
     id = Column(Integer, primary_key=True)
     metro_id = Column(Integer, ForeignKey('metro_stations.id'))
-    #yandex_theater_id = Column(String(140))
+    yandex_theater_id = Column(String(140))
     title = Column(String(140))
     address = Column(String(500))
     description = Column(Text)
@@ -89,7 +89,7 @@ class TimeSlots(Base):
 class Movies(Base):
     __tablename__ = "movies"
     id = Column(Integer, primary_key=True)
-    #yandex_movie_id = Column(String(140))
+    yandex_movie_id = Column(String(140))
     title = Column(String(120))
     description = Column(Text)
     duration = Column(String(120))
@@ -118,6 +118,32 @@ class MovieFormats(Base):
 
     def __repr__(self):
         return '<{}>'.format(self.title)
+
+
+class PlotKeyword(Base):
+    __tablename__ = 'tmdb_plot_keywords'
+    id = Column(Integer, primary_key=True)
+    keyword = Column(String(500), unique=True)
+
+    def __str__(self):
+        return self.keyword
+
+
+class MoviesKeywords(Base):
+    __tablename__ = 'tmdb_plot_keywords_connecction'
+    id = Column(Integer, primary_key=True)
+    keyword_id = Column(Integer, ForeignKey('tmdb_plot_keywords.id'))
+    movie_id = Column(Integer, ForeignKey('movies_tmdb.id'))
+
+
+class Movies_tmdb(Base):
+    __tablename__ = 'movies_tmdb'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(140), unique=True)
+    genre = Column(String(100))
+
+    def __str__(self):
+        return self.title
 
 
 if __name__ == '__main__':
