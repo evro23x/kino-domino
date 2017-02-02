@@ -2,8 +2,9 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Conve
 #from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove #InlineQueryResult
 from db_quering import get_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, parse_time_table, main_search
+from request_movie_db import get_movie_id, find_similiar_movie
 
-GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT = range(3)
+GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = range(4)
 
 USER_INPUT = {}
 USER_LOCATION = {}
@@ -18,8 +19,6 @@ def greet_user(bot, update):
     custom_keyboard = variants
     rm = ReplyKeyboardMarkup(custom_keyboard)
     bot.sendMessage(update.message.chat_id, text="Привет, друг! Чего бы тебе хотелось?", reply_markup=rm)
-     
-
     return  WHAT_TO_DO_NEXT
 
 
@@ -30,7 +29,22 @@ def what_to_do_next(bot, update):
         bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?", reply_markup=ReplyKeyboardRemove())
         return  GET_A_MOVIE_NAME
     else:
-        bot.sendMessage(update.message.chat_id, text="Здесь скоро будет ф-ция. А пока нажми /cancel и попробуй сходить в кино.")
+        bot.sendMessage(update.message.chat_id, text="Здорово! Знаешь, у меня хороший вкус, да и фильмов я много пересмотрел, так что могу тебе подсказать. Назови мне фильм, а я тебе порекомендую похожие.")
+        return GET_A_SIMILAR_MOVIE
+
+
+def get_a_similar_movie(bot, update):
+    #chat_id = update.message.chat_id
+    movie_id = get_movie_id(update.message.text)
+    print(movie_id)
+    if movie_id is None:
+        bot.sendMessage(update.message.chat_id, text="Извини, но я не слышал о таком фильме. Назови какой-нибудь другой фильм,я попробую еще раз.")
+        return GET_A_SIMILAR_MOVIE     
+      
+    similar_movie = find_similiar_movie(movie_id)
+    bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь вот это: " + similar_movie
+    bot.sendMessage(update.message.chat_id, bot_phrase)
+
 
 
 def get_a_movie_name(bot, update):  
@@ -52,7 +66,7 @@ def get_a_movie_name(bot, update):
 
 
 
-def analize_user_location(bot, update):
+def analyze_user_location(bot, update):
     chat_id = update.message.chat_id
     global USER_LOCATION
     USER_LOCATION[chat_id] = (update.message.location.latitude, update.message.location.longitude)
@@ -83,9 +97,11 @@ def main():
                  
                 GET_A_MOVIE_NAME: [MessageHandler([Filters.text], get_a_movie_name)],
 
-                ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analize_user_location)],
+                ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analyze_user_location)],
 
-                WHAT_TO_DO_NEXT: [MessageHandler([Filters.text], what_to_do_next)]
+                WHAT_TO_DO_NEXT: [MessageHandler([Filters.text], what_to_do_next)],
+
+                GET_A_SIMILAR_MOVIE: [MessageHandler([Filters.text], get_a_similar_movie)]
 
         
         },
