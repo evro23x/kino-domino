@@ -95,3 +95,5 @@ kino-domino.sqlite
 add_movies.py
 add_timeslots.py
 config.py
+alembic.ini
+.DS_Store
