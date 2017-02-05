@@ -89,7 +89,7 @@ class Movies(Base):
     __tablename__ = "movies"
     id = Column(Integer, primary_key=True)
     yandex_movie_id = Column(String(140))
-    title = Column(String(120))
+    title = Column(String(200))
     description = Column(Text)
     duration = Column(String(120))
     start_date = Column(String(120))
