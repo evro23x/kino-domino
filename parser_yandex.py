@@ -7,8 +7,6 @@ import requests
 import json
 
 ITERATIONS = 3
-DEBUG = False
-# DEBUG = True
 
 
 def get_or_create(current_session, model, **kwargs):
@@ -100,9 +98,6 @@ def check_movie_in_db():
     # Собираем сначала список новых фильмов(премьерных) + первая страница всех остальных
     # склеиваем два списка и отправляется в цикл по перебору всех страниц списка фильмов
     # далее итоговый список всех фильмов перебираем и складываем в базу
-    # TODO дублирующие записи в таблице фильмов из-за изменения рейтинга(при запуске парсера)
-    # рейтинг часто меняется и каждый раз при запуске парсера добавляется
-    # дублирующая запись в таблицу фильмов, отличие только в рейтинге фильма -> hotfix!
 
     url_new_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset=0&tag=cinema&hasMixed=0&' \
                          'filter=week-premiere&city=moscow'
@@ -123,11 +118,19 @@ def check_movie_in_db():
     for movie in movie_list:
         movies_id.append(movie['event']['id'])
         print('Парсим фильм {}'.format(movie['event']['title']))
-        get_or_create(db_session, Movies,
-                      yandex_movie_id=movie['event']['id'],
-                      title=movie['event']['title'],
-                      start_date=movie['scheduleInfo']['dateReleased'],
-                      rating=str(movie['rank']))
+        check_movie_exist = db_session.query(Movies).filter_by(yandex_movie_id=movie['event']['id'],
+                                                               title=movie['event']['title'],
+                                                               start_date=movie['scheduleInfo']['dateReleased']
+                                                               ).first()
+        if check_movie_exist:
+            if check_movie_exist.rating != movie['rank']:
+                db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": str(movie['rank'])})
+        else:
+            get_or_create(db_session, Movies,
+                          yandex_movie_id=movie['event']['id'],
+                          title=movie['event']['title'],
+                          start_date=movie['scheduleInfo']['dateReleased'],
+                          rating=str(movie['rank']))
     return movies_id
 
 
