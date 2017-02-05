@@ -1,7 +1,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler 
 #from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove #InlineQueryResult
-from db_quering import get_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, parse_time_table, main_search
+from db_quering import get_movie_id1, find_closest_theater, get_movie_slots_in_theater_at_period, parse_time_table, main_search
 from request_movie_db import get_movie_id, find_similiar_movie
 
 GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = range(4)
@@ -9,7 +9,7 @@ GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = 
 USER_INPUT = {}
 USER_LOCATION = {}
 
-def show_error(bot, update, error):
+def show_error(bot, update, error): 
     print('Update "{}" caused error "{}"'.format(update, error))
     
 
@@ -29,7 +29,7 @@ def what_to_do_next(bot, update):
         bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?", reply_markup=ReplyKeyboardRemove())
         return  GET_A_MOVIE_NAME
     else:
-        bot.sendMessage(update.message.chat_id, text="Здорово! Знаешь, у меня хороший вкус, да и фильмов я много пересмотрел, так что могу тебе подсказать. Назови мне фильм, а я тебе порекомендую похожие.")
+        bot.sendMessage(update.message.chat_id, text="Здорово! Знаешь, у меня хороший вкус, да и фильмов я много пересмотрел, так что могу тебе подсказать. Назови мне фильм, а я тебе порекомендую похожие.", reply_markup=ReplyKeyboardRemove())
         return GET_A_SIMILAR_MOVIE
 
 
@@ -42,8 +42,11 @@ def get_a_similar_movie(bot, update):
         return GET_A_SIMILAR_MOVIE     
       
     similar_movie = find_similiar_movie(movie_id)
-    bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь вот это: " + similar_movie
-    bot.sendMessage(update.message.chat_id, bot_phrase)
+    if similar_movie == "Я не смог ничего найти! ну и вкусы у тебя!":
+        bot.sendMessage(update.message.chat_id, text="Извини, но похожих фильмов нет")
+    else:
+        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " + similar_movie
+        bot.sendMessage(update.message.chat_id, bot_phrase)
 
 
 
@@ -51,12 +54,12 @@ def get_a_movie_name(bot, update):
     global USER_INPUT 
     chat_id = update.message.chat_id
     USER_INPUT[chat_id] = update.message.text
-    movie_id = get_movie_id(update.message.text)
+    movie_id = get_movie_id1(update.message.text)
     if movie_id is None:
         bot.sendMessage(update.message.chat_id, text="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
         return GET_A_MOVIE_NAME
 
-
+    
     print(USER_INPUT)
     location_keyboard = KeyboardButton(text="Найди кино рядом", request_location=True)
     custom_keyboard = [[ location_keyboard]]
@@ -73,6 +76,7 @@ def analyze_user_location(bot, update):
     print(USER_LOCATION)
     print(USER_INPUT)
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
+    print(timetable)
     final_phrase = timetable + "Нажми /cancel, чтобы закончить"
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
 

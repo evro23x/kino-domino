@@ -1,5 +1,4 @@
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, Float, String, Text, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, Float, String, Text, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from config import db_configuration
@@ -90,12 +89,13 @@ class Movies(Base):
     __tablename__ = "movies"
     id = Column(Integer, primary_key=True)
     yandex_movie_id = Column(String(140))
-    title = Column(String(120))
+    title = Column(String(200))
     description = Column(Text)
     duration = Column(String(120))
     start_date = Column(String(120))
     rating = Column(String(120))
     time_slots = relationship('TimeSlots', backref='movie')
+    __table_args__ = (UniqueConstraint('yandex_movie_id', 'title', name='movie_uniqueness'),)
 
     def __init__(self, yandex_movie_id=None, title=None, start_date=None, rating=None):
         self.yandex_movie_id = yandex_movie_id
