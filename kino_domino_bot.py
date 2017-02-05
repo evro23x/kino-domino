@@ -54,9 +54,7 @@ def get_a_movie_name(bot, update):
     global USER_INPUT 
     chat_id = update.message.chat_id
     USER_INPUT[chat_id] = update.message.text
-    print(update.message.text)
     movie_id = get_movie_id1(update.message.text)
-    print(movie_id)
     if movie_id is None:
         bot.sendMessage(update.message.chat_id, text="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
         return GET_A_MOVIE_NAME
