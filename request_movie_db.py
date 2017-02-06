@@ -3,7 +3,7 @@ import tmdbsimple as tmdb
 from requests.exceptions import HTTPError
 from sqlalchemy import exists, exc
 from config import tmdb_api_key
-from db_schema_tmdb import Movies_tmdb, db_session, PlotKeyword, MoviesKeywords
+from db_schema import Movies_tmdb, db_session, PlotKeyword, MoviesKeywords, Movies
 from win_unicode_console import enable
 
 
@@ -38,6 +38,25 @@ def find_similiar_movie(movie_id_):
         return similliar_movie
     except UnboundLocalError:
         return "Я не смог ничего найти! ну и вкусы у тебя!"
+
+
+def request_info_from_tmdb_and_store_in_database(movie_title):
+    search = tmdb.Search()
+    response = search.movie(query=movie_title, language="ru-RU")
+    movie_id = search.results[0]["id"]
+    movie = tmdb.Movies(movie_id)
+    response_full = movie.info(language="ru-RU")
+    movie_to_add = Movies(title=movie.title, duration=movie.runtime, rating=movie.vote_average)
+    db_session.add(movie_to_add)
+    db_session.commit()
+    key_words = movie.keywords()
+    for key_word in key_words["keywords"]:
+        is_keyword_in_database = db_session.query(exists().where(PlotKeyword.keyword == key_word["name"]))[0][0]
+        if not is_keyword_in_database:
+            key_word_to_add = PlotKeyword(keyword=key_word["name"])
+            db_session.add(key_word_to_add)
+        db_session.commit()
+        add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
 
 
 def add_keywords_and_movie_to_associatve_table(movie_to_add_id, key_words):
@@ -85,3 +104,4 @@ if __name__ == '__main__':
     #print(user_input)
     #print(get_movie_id(user_input))
     #print(find_similiar_movie(get_movie_id(user_input)))
+    request_info_from_tmdb_and_store_in_database("Аватар")

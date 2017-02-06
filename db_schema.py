@@ -97,11 +97,12 @@ class Movies(Base):
     time_slots = relationship('TimeSlots', backref='movie')
     __table_args__ = (UniqueConstraint('yandex_movie_id', 'title', name='movie_uniqueness'),)
 
-    def __init__(self, yandex_movie_id=None, title=None, start_date=None, rating=None):
+    def __init__(self, yandex_movie_id=None, title=None, start_date=None, rating=None, duration=None):
         self.yandex_movie_id = yandex_movie_id
         self.title = title
         self.start_date = start_date
         self.rating = rating
+        self.duration = duration
 
     def __repr__(self):
         return '<{}>'.format(self.title)
