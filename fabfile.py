@@ -4,10 +4,6 @@ env.hosts = ['192.168.23.3']
 env.user = 'vagrant'
 env.key_filename = '/Users/macpro/vagrant-vm/test_srv_3/.vagrant/machines/default/virtualbox/private_key'
 
-# @task
-# def some_task():
-#     fabtools.vagrant.machines()
-
 
 # update и upgrade системы
 # установка пострги
@@ -22,7 +18,7 @@ env.key_filename = '/Users/macpro/vagrant-vm/test_srv_3/.vagrant/machines/defaul
 # запуск телеграмм бота
 
 
-def load_vm():
+def reload_vm():
     local("cd ~/vagrant-vm/test_srv_3/ && vagrant destroy -f")
     local("rm -rf ~/vagrant-vm/test_srv_3/")
 
@@ -35,11 +31,12 @@ def load_vm():
     local("cd ~/vagrant-vm/test_srv_3/ && vagrant reload")
 
 
-def prepare_soft():
+def setup_pg():
     sudo("apt-get install postgresql -y")
-
-
-def pg():
+    sudo("apt-get install python-psycopg2 -y")
+    sudo("apt-get install libpq-dev -y")
+    sudo("apt-get install libxml2 libxslt1.1 libxml2-dev libxslt1-dev python-libxml2")
+    sudo("apt-get install python-libxslt1 python-dev python-setuptools")
     run("sudo -u postgres psql -c 'CREATE DATABASE db_name;'")
     run("sudo -u postgres psql -c \"CREATE USER username WITH password 'password';\"")
     run("sudo -u postgres psql -c 'GRANT ALL privileges ON DATABASE db_name TO username;'")
@@ -47,19 +44,24 @@ def pg():
     sudo("echo \"host all all 0.0.0.0/0 md5\" >> /etc/postgresql/9.3/main/pg_hba.conf")
     sudo("service postgresql stop && service postgresql start")
 
-    # with cd("/tmp"):
-    #     run("ls -la")
+
+def unpack_project():
+    sudo("apt-get install git - y")
+    run("git clone https://github.com/evro23x/kino-domino.git")
+    with cd("kino-domino/"):
+        put('~/vagrant-vm/config.py', 'config.py')
+        put('~/vagrant-vm/alembic.ini', 'alembic.ini')
+    run("mkdir ~/venvs")
+    sudo("apt-get install python3.4-venv")
+    run("python3 -m venv kino-domino")
+    run(". ../venvs/kino-domino/bin/activate")
+    run(". ../venvs/kino-domino/bin/activate")
+    run("pip install -r requirements.txt")
+    run("alembic upgrade head")
 
 
 def main():
-    load_vm()
-    prepare_soft()
-    pg()
+    reload_vm()
+    setup_pg()
+    unpack_project()
 
-    # local("cd ~/vagrant-vm/test_srv_2/ && ls -la")
-    # local("cd / && ls -la")
-
-
-# def q1():
-#     run("ls -la")
-#     run("cd / && ls -la")
