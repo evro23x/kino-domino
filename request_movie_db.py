@@ -6,7 +6,6 @@ from config import tmdb_api_key
 from db_schema import db_session, PlotKeyword, MoviesKeywords, Movies
 from win_unicode_console import enable
 
-
 enable()
 
 
@@ -30,7 +29,7 @@ def find_similiar_movie(movie_id_):
         set_of_each_movie_keywords_ids = set()
         for keyword in each_movie_keywords_ids:
             set_of_each_movie_keywords_ids.add(keyword.keyword_id)
-        current_max_matches = len(set_movie_keywords_ids&set_of_each_movie_keywords_ids)
+        current_max_matches = len(set_movie_keywords_ids & set_of_each_movie_keywords_ids)
         if current_max_matches > max_matches and each_movie.id != movie_id_:
             max_matches = current_max_matches
             similliar_movie = each_movie.title
@@ -52,7 +51,7 @@ def add_plotkeywords_in_database(key_words):
 def get_info_about_movie(tmdb_id):
     movie = tmdb.Movies(tmdb_id)
     response = movie.info(language="ru-RU")
-    return movie    
+    return movie
 
 
 def request_info_from_tmdb_and_store_in_database(movie_title):
@@ -62,8 +61,8 @@ def request_info_from_tmdb_and_store_in_database(movie_title):
         movie_id = search.results[0]["id"]
         movie = get_info_about_movie(movie_id)
         us_release_date = movie.releases()["countries"][0]["release_date"]
-        movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"], 
-            duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
+        movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
+                              duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
         db_session.add(movie_to_add)
         db_session.commit()
         key_words = movie.keywords()
@@ -90,8 +89,8 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
             movie = get_info_about_movie(movie_num)
             print(movie.title)
             us_release_date = movie.releases()["countries"][0]["release_date"]
-            movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"], 
-                duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
+            movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
+                                  duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
             db_session.add(movie_to_add)
             key_words = movie.keywords()
             add_plotkeywords_in_database(key_words)
@@ -110,12 +109,13 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
 
 
 if __name__ == '__main__':
+    pass
     tmdb.API_KEY = tmdb_api_key
-    #add_movies_to_DB(25,30)
-    #user_input = "Умница Уилл"
-    #print(user_input)
-    #print(get_movie_id(user_input))
-    #print(find_similiar_movie(get_movie_id(user_input)))
-    request_info_from_tmdb_and_store_in_database("Антикиллер")
-    #movie=get_info_about_movie(620)
-    #print(movie.releases()["countries"][0]["release_date"])
+    add_movies_to_DB(20, 30)
+    # user_input = "Умница Уилл"
+    # print(user_input)
+    # print(get_movie_id(user_input))
+    # print(find_similiar_movie(get_movie_id(user_input)))
+    # request_info_from_tmdb_and_store_in_database("Антикиллер")
+    # movie=get_info_about_movie(620)
+    # print(movie.releases()["countries"][0]["release_date"])
