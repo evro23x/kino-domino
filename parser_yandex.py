@@ -157,19 +157,10 @@ def check_movie_in_db():
     for movie in movie_list:
         movies_id.append(movie['event']['id'])
         print('Парсим фильм {}'.format(movie['event']['title']))
-        check_movie_exist = db_session.query(Movies).filter_by(yandex_movie_id=movie['event']['id'],
-                                                               title=movie['event']['title'],
-                                                               start_date=movie['scheduleInfo']['dateReleased']
-                                                               ).first()
-        if check_movie_exist:
-            if check_movie_exist.rating != movie['rank']:
-                db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": str(movie['rank'])})
-        else:
-            get_or_create(db_session, Movies,
-                          yandex_movie_id=movie['event']['id'],
-                          title=movie['event']['title'],
-                          start_date=movie['scheduleInfo']['dateReleased'],
-                          rating=movie['rank'])
+        get_or_create(db_session, Movies,
+                      yandex_movie_id=movie['event']['id'],
+                      title=movie['event']['title'],
+                      start_date=movie['scheduleInfo']['dateReleased'])
     return movies_id
 
 
