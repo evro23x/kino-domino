@@ -89,13 +89,24 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
             movie = get_info_about_movie(movie_num)
             print(movie.title)
             us_release_date = movie.releases()["countries"][0]["release_date"]
-            movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
-                                  duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
-            db_session.add(movie_to_add)
-            key_words = movie.keywords()
-            add_plotkeywords_in_database(key_words)
-            add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
-            time.sleep(1)
+            # Проверка на существование фильма
+            if movie.runtime is None:
+                movie.runtime = 0
+            check_movie_exist = db_session.query(Movies).filter_by(title=movie.title,
+                                                                   genre=movie.genres[0]["name"],
+                                                                   duration=movie.runtime,
+                                                                   start_date=us_release_date).first()
+            if check_movie_exist:
+                if check_movie_exist.rating != movie.vote_average:
+                    db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": movie.vote_average})
+            else:
+                movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
+                                      duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
+                db_session.add(movie_to_add)
+                key_words = movie.keywords()
+                add_plotkeywords_in_database(key_words)
+                add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
+                time.sleep(1)
         except HTTPError:
             print("we've got 404!")
             continue
@@ -109,7 +120,6 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
 
 
 if __name__ == '__main__':
-    pass
     tmdb.API_KEY = tmdb_api_key
     add_movies_to_DB(20, 30)
     # user_input = "Умница Уилл"
