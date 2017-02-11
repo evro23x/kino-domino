@@ -94,7 +94,7 @@ class Movies(Base):
     description = Column(Text)
     duration = Column(Integer, default=0)
     start_date = Column(String(120))
-    rating = Column(String(120), default=0)
+    rating = Column(Float, default=0)
     time_slots = relationship('TimeSlots', backref='movie')
     __table_args__ = (UniqueConstraint('yandex_movie_id', 'title', name='movie_uniqueness'),)
 

@@ -15,28 +15,26 @@ def get_movie_id(user_input):
         return movie.id
 
 
+def get_plot_keywords_ids_by_movie_id(movie_id):
+    return [r[0] for r in db_session.query(MoviesKeywords.keyword_id).filter(MoviesKeywords.movie_id == movie_id).all()]
+
+#Алгоритм: добавить фильтр по рейтингу диапазоны 4+, 6+, 8+
 def find_similiar_movie(movie_id_):
     movie = Movies.query.filter(Movies.id == movie_id_).first()
     same_genre_movies = Movies.query.filter(Movies.genre == movie.genre).all()
     max_matches = 0
-    movie_keywords_ids = MoviesKeywords.query.filter(MoviesKeywords.movie_id == movie_id_).all()
-    set_movie_keywords_ids = set()
-    for keyword in movie_keywords_ids:
-        set_movie_keywords_ids.add(keyword.keyword_id)
+    similliar_movie_title = None
+    movie_keywords_ids = get_plot_keywords_ids_by_movie_id(movie_id_)
+    set_movie_keywords_ids = set(movie_keywords_ids)
     for each_movie in same_genre_movies:
         current_max_matches = 0
-        each_movie_keywords_ids = MoviesKeywords.query.filter(MoviesKeywords.movie_id == each_movie.id).all()
-        set_of_each_movie_keywords_ids = set()
-        for keyword in each_movie_keywords_ids:
-            set_of_each_movie_keywords_ids.add(keyword.keyword_id)
-        current_max_matches = len(set_movie_keywords_ids & set_of_each_movie_keywords_ids)
+        each_movie_keywords_ids = get_plot_keywords_ids_by_movie_id(each_movie.id)
+        current_max_matches = len(set_movie_keywords_ids.intersection(set(each_movie_keywords_ids)))
         if current_max_matches > max_matches and each_movie.id != movie_id_:
             max_matches = current_max_matches
-            similliar_movie = each_movie.title
-    try:
-        return similliar_movie
-    except UnboundLocalError:
-        return "Я не смог ничего найти! ну и вкусы у тебя!"
+            similliar_movie_title = each_movie.title
+    
+    return similliar_movie_title 
 
 
 def add_plotkeywords_in_database(key_words):
