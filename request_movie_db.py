@@ -10,14 +10,14 @@ enable()
 
 
 def get_movie_id(user_input):
-    movie = Movies_tmdb.query.filter(Movies_tmdb.title.ilike("%{}%".format(user_input[1:-1]))).first()
+    movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input[1:-1]))).first()
     if movie:
         return movie.id
 
 
 def find_similiar_movie(movie_id_):
-    movie = Movies_tmdb.query.filter(Movies_tmdb.id == movie_id_).first()
-    same_genre_movies = Movies_tmdb.query.filter(Movies_tmdb.genre == movie.genre).all()
+    movie = Movies.query.filter(Movies.id == movie_id_).first()
+    same_genre_movies = Movies.query.filter(Movies.genre == movie.genre).all()
     max_matches = 0
     movie_keywords_ids = MoviesKeywords.query.filter(MoviesKeywords.movie_id == movie_id_).all()
     set_movie_keywords_ids = set()
@@ -121,11 +121,11 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
 
 if __name__ == '__main__':
     tmdb.API_KEY = tmdb_api_key
-    add_movies_to_DB(20, 30)
-    # user_input = "Умница Уилл"
+    #add_movies_to_DB(1, 100)
+    user_input = "Сука-любовь"
     # print(user_input)
     # print(get_movie_id(user_input))
-    # print(find_similiar_movie(get_movie_id(user_input)))
+    print(find_similiar_movie(get_movie_id(user_input)))
     # request_info_from_tmdb_and_store_in_database("Антикиллер")
     # movie=get_info_about_movie(620)
     # print(movie.releases()["countries"][0]["release_date"])

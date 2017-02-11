@@ -4,6 +4,9 @@ from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movie
 from datetime import datetime, date, time, timedelta
 import requests
 import json
+from win_unicode_console import enable
+
+enable()
 
 ITERATIONS = 3
 
