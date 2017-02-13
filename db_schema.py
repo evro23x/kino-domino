@@ -90,21 +90,16 @@ class Movies(Base):
     id = Column(Integer, primary_key=True)
     yandex_movie_id = Column(String(140))
     title = Column(String(200))
+    genre = Column(String(200))
     description = Column(Text)
-    duration = Column(String(120))
+    duration = Column(Integer, default=0)
     start_date = Column(String(120))
-    rating = Column(String(120))
+    rating = Column(Float, default=0)
     time_slots = relationship('TimeSlots', backref='movie')
     __table_args__ = (UniqueConstraint('yandex_movie_id', 'title', name='movie_uniqueness'),)
 
-    def __init__(self, yandex_movie_id=None, title=None, start_date=None, rating=None):
-        self.yandex_movie_id = yandex_movie_id
-        self.title = title
-        self.start_date = start_date
-        self.rating = rating
-
-    def __repr__(self):
-        return '<{}>'.format(self.title)
+    def __str__(self):
+        return self.title
 
 
 class MovieFormats(Base):
@@ -133,17 +128,7 @@ class MoviesKeywords(Base):
     __tablename__ = 'tmdb_plot_keywords_connecction'
     id = Column(Integer, primary_key=True)
     keyword_id = Column(Integer, ForeignKey('tmdb_plot_keywords.id'))
-    movie_id = Column(Integer, ForeignKey('movies_tmdb.id'))
-
-
-class Movies_tmdb(Base):
-    __tablename__ = 'movies_tmdb'
-    id = Column(Integer, primary_key=True)
-    title = Column(String(140), unique=True)
-    genre = Column(String(100))
-
-    def __str__(self):
-        return self.title
+    movie_id = Column(Integer, ForeignKey('movies.id'))
 
 
 if __name__ == '__main__':
