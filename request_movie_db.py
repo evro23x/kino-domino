@@ -19,18 +19,19 @@ def get_plot_keywords_ids_by_movie_id(movie_id):
     return [r[0] for r in db_session.query(MoviesKeywords.keyword_id).filter(MoviesKeywords.movie_id == movie_id).all()]
 
 #Алгоритм: добавить фильтр по рейтингу диапазоны 4+, 6+, 8+
-def find_similiar_movie(movie_id_):
-    movie = Movies.query.filter(Movies.id == movie_id_).first()
-    same_genre_movies = Movies.query.filter(Movies.genre == movie.genre).all()
+def find_similiar_movie(movie_id):
+    movie = Movies.query.filter(Movies.id == movie_id).first()
+    same_genre_movies = Movies.query.filter(Movies.genre == movie.genre, 
+                                            Movies.rating.between(movie.rating-1.5, movie.rating+1.5)).all()
     max_matches = 0
     similliar_movie_title = None
-    movie_keywords_ids = get_plot_keywords_ids_by_movie_id(movie_id_)
+    movie_keywords_ids = get_plot_keywords_ids_by_movie_id(movie_id)
     set_movie_keywords_ids = set(movie_keywords_ids)
     for each_movie in same_genre_movies:
         current_max_matches = 0
         each_movie_keywords_ids = get_plot_keywords_ids_by_movie_id(each_movie.id)
         current_max_matches = len(set_movie_keywords_ids.intersection(set(each_movie_keywords_ids)))
-        if current_max_matches > max_matches and each_movie.id != movie_id_:
+        if current_max_matches > max_matches and each_movie.id != movie_id:
             max_matches = current_max_matches
             similliar_movie_title = each_movie.title
     
@@ -119,11 +120,9 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
 
 if __name__ == '__main__':
     tmdb.API_KEY = tmdb_api_key
-    #add_movies_to_DB(1, 100)
-    user_input = "Сука-любовь"
+    #add_movies_to_DB(10, 1000)
+    #user_input = "Дюна"
     # print(user_input)
-    # print(get_movie_id(user_input))
-    print(find_similiar_movie(get_movie_id(user_input)))
+    #print(get_movie_id(user_input))
+    #print(find_similiar_movie(get_movie_id(user_input)))
     # request_info_from_tmdb_and_store_in_database("Антикиллер")
-    # movie=get_info_about_movie(620)
-    # print(movie.releases()["countries"][0]["release_date"])
