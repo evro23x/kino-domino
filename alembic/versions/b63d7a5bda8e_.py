@@ -21,6 +21,7 @@ def upgrade():
     op.alter_column('movies', 'rating',
                existing_type=sa.VARCHAR(length=120),
                type_=sa.Float(),
+               postgresql_using='trim(rating)::float',
                existing_nullable=True)
     # ### end Alembic commands ###
 
