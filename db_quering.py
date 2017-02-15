@@ -21,7 +21,8 @@ def get_movie_id1(user_input):
 
 
 def find_closest_theater(user_coordinates, movie_id):
-    movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id, TimeSlots.time.between(datetime.now(),datetime.now()+timedelta(days=3))).all()
+    movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id, 
+                                                    TimeSlots.time.between(datetime.now(),datetime.now()+timedelta(days=3))).all()
     theaters_coordinates = []
     for slot in movie_slots:
         theaters_coordinates.append((slot.theater.latitude, slot.theater.longitude))

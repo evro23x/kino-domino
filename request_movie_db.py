@@ -1,9 +1,10 @@
 import time
+from datetime import datetime, timedelta
 import tmdbsimple as tmdb
 from requests.exceptions import HTTPError
 from sqlalchemy import exists, exc
 from config import tmdb_api_key
-from db_schema import db_session, PlotKeyword, MoviesKeywords, Movies
+from db_schema import db_session, PlotKeyword, MoviesKeywords, Movies, TimeSlots
 from win_unicode_console import enable
 
 enable()
@@ -18,7 +19,7 @@ def get_movie_id(user_input):
 def get_plot_keywords_ids_by_movie_id(movie_id):
     return [r[0] for r in db_session.query(MoviesKeywords.keyword_id).filter(MoviesKeywords.movie_id == movie_id).all()]
 
-#Алгоритм: добавить фильтр по рейтингу диапазоны 4+, 6+, 8+
+
 def find_similiar_movie(movie_id):
     movie = Movies.query.filter(Movies.id == movie_id).first()
     same_genre_movies = Movies.query.filter(Movies.genre == movie.genre, 
@@ -60,17 +61,12 @@ def request_info_from_tmdb_and_store_in_database(movie_title):
         movie_id = search.results[0]["id"]
         movie = get_info_about_movie(movie_id)
         us_release_date = movie.releases()["countries"][0]["release_date"]
-        movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
-                              duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
-        db_session.add(movie_to_add)
-        db_session.commit()
-        key_words = movie.keywords()
-        add_plotkeywords_in_database(key_words)
-        add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
-        db_session.commit()
+        check_if_movie_exists_if_not_add(movie, us_release_date)
     except exc.IntegrityError:
         print("Something went very wrong!")
         db_session.rollback()
+    except IndexError:
+        print("Index Error!")
 
 
 def add_keywords_and_movie_to_associatve_table(movie_to_add_id, key_words):
@@ -81,6 +77,28 @@ def add_keywords_and_movie_to_associatve_table(movie_to_add_id, key_words):
     db_session.commit()
 
 
+def check_if_movie_exists_if_not_add(movie, us_release_date):
+    try:
+        if movie.runtime is None:
+            movie.runtime = 0
+        check_movie_exist = db_session.query(Movies).filter_by(title=movie.title,
+                                                                genre=movie.genres[0]["name"],
+                                                                duration=movie.runtime,
+                                                                start_date=us_release_date).first()
+        if check_movie_exist:
+            if check_movie_exist.rating != movie.vote_average:
+                    db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": movie.vote_average})
+        else:
+            movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
+                                    duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
+            db_session.add(movie_to_add)
+            key_words = movie.keywords()
+            add_plotkeywords_in_database(key_words)
+            add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
+    except IndexError:
+        print("Index Error!")
+
+
 def add_movies_to_DB(from_movie_id, to_movie_id):
     for movie_num in range(from_movie_id, to_movie_id):
         try:
@@ -88,24 +106,8 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
             movie = get_info_about_movie(movie_num)
             print(movie.title)
             us_release_date = movie.releases()["countries"][0]["release_date"]
-            # Проверка на существование фильма
-            if movie.runtime is None:
-                movie.runtime = 0
-            check_movie_exist = db_session.query(Movies).filter_by(title=movie.title,
-                                                                   genre=movie.genres[0]["name"],
-                                                                   duration=movie.runtime,
-                                                                   start_date=us_release_date).first()
-            if check_movie_exist:
-                if check_movie_exist.rating != movie.vote_average:
-                    db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": movie.vote_average})
-            else:
-                movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
-                                      duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
-                db_session.add(movie_to_add)
-                key_words = movie.keywords()
-                add_plotkeywords_in_database(key_words)
-                add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
-                time.sleep(1)
+            check_if_movie_exists_if_not_add(movie, us_release_date)
+            time.sleep(1)
         except HTTPError:
             print("we've got 404!")
             continue
@@ -118,11 +120,62 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
             continue
 
 
+def get_current_movies():
+    all_time_slots = TimeSlots.query.filter(TimeSlots.time.between(datetime.now(), 
+        datetime.now()+timedelta(days=3))).all()
+    current_movies = []
+    for slot in all_time_slots:
+        if not slot.movie in current_movies:
+            current_movies.append(slot.movie)
+    return current_movies
+
+
+def get_similar_movies_for_list_of_movies(current_movies):
+    similar_movies = []
+    for each_movie in current_movies:
+        movie_title = each_movie.title
+        search = tmdb.Search()
+        response = search.movie(query=movie_title, language="ru-RU")
+        if search.results:
+            movie_id = search.results[0]["id"]
+            movie = get_info_about_movie(movie_id)
+            get_similar_movies_from_tmdb = movie.similar_movies(language="ru-RU")
+            for similar_movie in get_similar_movies_from_tmdb["results"]:
+                if not similar_movie["title"] in similar_movies:
+                    similar_movies.append(similar_movie["title"])
+    return similar_movies
+
+
+def add_similar_movies(similar_movies):
+    for movie_title in similar_movies:
+        print(movie_title)
+        request_info_from_tmdb_and_store_in_database(movie_title)
+        time.sleep(1)
+
+
+def find_and_add_similar_movies_to_current_movies():
+    current_movies = get_current_movies()
+    similar_movies = get_similar_movies_for_list_of_movies(current_movies)
+    add_similar_movies(similar_movies)
+
+
+def get_movie_titles_from_database_by_id(min_id, max_id):
+    return [movie for movie in db_session.query(Movies).filter(Movies.id >= min_id).filter(Movies.id <= max_id).all()]
+
+
+def find_and_add_similar_movies_to_movies_in_database_by_id(min_id, max_id):
+    movies = get_movie_titles_from_database_by_id(min_id, max_id)
+    similar_movies = get_similar_movies_for_list_of_movies(movies)
+    print(similar_movies)
+    add_similar_movies(similar_movies)
+
+
 if __name__ == '__main__':
     tmdb.API_KEY = tmdb_api_key
-    #add_movies_to_DB(10, 1000)
-    #user_input = "Дюна"
-    # print(user_input)
+    #add_movies_to_DB(1780, 1800)
+    #user_input = "Джек Ричер"
+    #print(user_input)
     #print(get_movie_id(user_input))
     #print(find_similiar_movie(get_movie_id(user_input)))
-    # request_info_from_tmdb_and_store_in_database("Антикиллер")
+    #find_and_add_similar_movies_to_current_movies()
+    find_and_add_similar_movies_to_movies_in_database_by_id(250, 260)   
