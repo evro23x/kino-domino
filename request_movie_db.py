@@ -54,6 +54,26 @@ def get_info_about_movie(tmdb_id):
     return movie
 
 
+def get_movie_info_from_tmdb_by_movie_title(movie_title):
+    search = tmdb.Search()
+    response = search.movie(query=movie_title, language="ru-RU")
+    if len(search.results) == 0:
+        return None
+
+    movie_id = search.results[0]["id"]
+    movie = get_info_about_movie(movie_id)
+
+    genre = ""
+    if len(movie.genres) > 0:
+        genre = movie.genres[0]["name"]
+
+    movie_info = {"genre": genre,
+                  "duration": movie.runtime,
+                  "rating": movie.vote_average,
+                  "description": search.results[0]["overview"]}
+    return movie_info
+
+
 def request_info_from_tmdb_and_store_in_database(movie_title):
     try:
         search = tmdb.Search()

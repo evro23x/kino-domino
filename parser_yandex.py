@@ -2,6 +2,9 @@ from math import sqrt
 from bs4 import BeautifulSoup
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
 from datetime import datetime, date, time, timedelta
+from request_movie_db import get_movie_info_from_tmdb_by_movie_title
+from config import tmdb_api_key
+import tmdbsimple as tmdb
 import requests
 import json
 from win_unicode_console import enable
@@ -141,29 +144,44 @@ def check_movie_in_db():
     далее итоговый список всех фильмов перебираем и складываем в базу
     """
 
-    url_new_movie_list = 'https://afisha.yandex.ru/api/events/actual?limit=12&offset=0&tag=cinema&hasMixed=0&' \
-                         'filter=week-premiere&city=moscow'
+    url_new_movie_list = 'https://afisha.yandex.ru/api/events/selection/week-premiere?' \
+                         'limit=12&offset=0&hasMixed=0&city=moscow'
     new_movie_list = get_json_from_url(url_new_movie_list)
-
-    url_movie_list = 'https://afisha.yandex.ru/api/events/actual?' \
-                     'limit=12&offset=0&tag=cinema&hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
+    url_movie_list = 'https://afisha.yandex.ru/api/events/selection/cinema-today?' \
+                     'limit=12&offset=0&hasMixed=0&date=' + str(date.today()) + '&period=1&city=moscow'
     first_query_json = get_json_from_url(url_movie_list)
 
     movie_list = new_movie_list['data'] + first_query_json['data']
-    movies_id = []
     for i in range(int(first_query_json['paging']['total'] / 12 + 1)):
-        url_movie_list = 'https://afisha.yandex.ru/api/events/actual?' \
-                         'limit=12&offset=' + str(i * 12) + '&tag=cinema&hasMixed=0' \
+        url_movie_list = 'https://afisha.yandex.ru/api/events/selection/cinema-today?' \
+                         'limit=12&offset=' + str(i * 12) + '&hasMixed=0' \
                                                             '&date=' + str(date.today()) + '&period=1&city=moscow'
 
         movie_list = movie_list + get_json_from_url(url_movie_list)['data']
+    movies_id = []
     for movie in movie_list:
         movies_id.append(movie['event']['id'])
         print('Парсим фильм {}'.format(movie['event']['title']))
-        get_or_create(db_session, Movies,
-                      yandex_movie_id=movie['event']['id'],
-                      title=movie['event']['title'],
-                      start_date=movie['scheduleInfo']['dateReleased'])
+
+        check_movie_exist = db_session.query(Movies).filter_by(title=movie['event']['title'],
+                                                               start_date=movie['scheduleInfo']['dateReleased']).first()
+        if check_movie_exist:
+            movie_info_from_tdb = get_movie_info_from_tmdb_by_movie_title(movie['event']['title'])
+            if movie_info_from_tdb is None:
+                continue
+            if check_movie_exist.rating != movie_info_from_tdb["rating"]:
+                db_session.query(Movies).filter(Movies.id == check_movie_exist.id).update({
+                    "rating": movie_info_from_tdb["rating"],
+                    "genre": movie_info_from_tdb["genre"],
+                    "duration": movie_info_from_tdb["duration"],
+                    "description": movie_info_from_tdb["description"]
+                })
+                db_session.commit()
+        else:
+            get_or_create(db_session, Movies,
+                          yandex_movie_id=movie['event']['id'],
+                          title=movie['event']['title'],
+                          start_date=movie['scheduleInfo']['dateReleased'])
     return movies_id
 
 
@@ -245,6 +263,7 @@ def check_time_slot_in_db(movies_id):
 
 
 def main():
+    tmdb.API_KEY = tmdb_api_key
     all_metro = check_metro_in_db()
     check_cinema_in_db(all_metro)
     movies_id_list = check_movie_in_db()
