@@ -1,4 +1,6 @@
 from fabric.api import *
+import time
+import socket
 
 env.hosts = ['192.168.23.3']
 env.user = 'vagrant'
@@ -13,30 +15,40 @@ env.key_filename = '/Users/macpro/vagrant-vm/test_srv_3/.vagrant/machines/defaul
 # включение виртуального окружения
 # установка пакетов и зависимостей
 # копирование конфигов(база и алембик) из гитигнора
-# запуск миграции
+# запуск миграций
 # запуск парсера
 # запуск телеграмм бота
+
+
+def wait_for_ssh():
+    s = socket.socket()
+    address = '192.168.23.3'
+    port = 22
+    while True:
+        time.sleep(1)
+        try:
+            s.connect((address, port))
+            return
+        except Exception:
+            print("failed to connect to {}:{}".format(address, port))
+            pass
 
 
 def reload_vm():
     local("cd ~/vagrant-vm/test_srv_3/ && vagrant destroy -f")
     local("rm -rf ~/vagrant-vm/test_srv_3/")
-
-    local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/trusty64")
+    local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/xenial64")
     local("rm ~/vagrant-vm/test_srv_3/Vagrantfile")
     local("cp ~/vagrant-vm/Vagrantfile ~/vagrant-vm/test_srv_3/")
     local("cd ~/vagrant-vm/test_srv_3/ && ssh-keygen -R 192.168.23.3")
     local("cd ~/vagrant-vm/test_srv_3/ && vagrant up")
-    local("cd ~/vagrant-vm/test_srv_3/ && vagrant reload")
-    local("cd ~/vagrant-vm/test_srv_3/ && vagrant reload")
 
 
 def setup_pg():
-    sudo("apt-get install postgresql -y")
-    sudo("apt-get install python-psycopg2 -y")
-    sudo("apt-get install libpq-dev -y")
-    sudo("apt-get install libxml2 libxslt1.1 libxml2-dev libxslt1-dev python-libxml2")
-    sudo("apt-get install python-libxslt1 python-dev python-setuptools")
+    wait_for_ssh()
+    sudo("apt-get install postgresql python-psycopg2 libpq-dev -y")
+    sudo("apt-get install libxml2 libxslt1.1 libxml2-dev libxslt1-dev python-libxml2 -y")
+    sudo("apt-get install python-libxslt1 python-dev python-setuptools build-essential libssl-dev libffi-dev -y")
     run("sudo -u postgres psql -c 'CREATE DATABASE db_name;'")
     run("sudo -u postgres psql -c \"CREATE USER username WITH password 'password';\"")
     run("sudo -u postgres psql -c 'GRANT ALL privileges ON DATABASE db_name TO username;'")
@@ -46,22 +58,28 @@ def setup_pg():
 
 
 def unpack_project():
-    sudo("apt-get install git - y")
+    sudo("apt-get install git -y")
     run("git clone https://github.com/evro23x/kino-domino.git")
     with cd("kino-domino/"):
         put('~/vagrant-vm/config.py', 'config.py')
         put('~/vagrant-vm/alembic.ini', 'alembic.ini')
     run("mkdir ~/venvs")
-    sudo("apt-get install python3.4-venv")
-    run("python3 -m venv kino-domino")
-    run(". ../venvs/kino-domino/bin/activate")
-    run(". ../venvs/kino-domino/bin/activate")
-    run("pip install -r requirements.txt")
-    run("alembic upgrade head")
+    sudo("apt-get install python3.4-venv -y")
+    run("cd venvs && python3 -m venv kino-domino")
+    run("source venvs/kino-domino/bin/activate")
+    run("cd kino-domino && pip install -r requirements.txt")
+    run("cd kino-domino && alembic upgrade head")
 
 
-def main():
+def deploy_from_github():
+    pass
+
+
+def bootstrap():
     reload_vm()
     setup_pg()
     unpack_project()
 
+
+def deploy():
+    deploy_from_github()
