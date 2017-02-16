@@ -1,10 +1,15 @@
 from fabric.api import *
 import time
 import socket
+import config
 
-env.hosts = ['192.168.23.3']
-env.user = 'vagrant'
-env.key_filename = '/Users/macpro/vagrant-vm/test_srv_3/.vagrant/machines/default/virtualbox/private_key'
+# env.hosts = ['192.168.23.3']
+# env.user = 'vagrant'
+# env.key_filename = '/Users/macpro/vagrant-vm/test_srv_3/.vagrant/machines/default/virtualbox/private_key'
+
+env.hosts = config.env_hosts
+env.user = config.env_user
+env.key_filename = config.env_key_filename
 
 
 # update и upgrade системы
@@ -37,6 +42,7 @@ def wait_for_ssh():
 def reload_vm():
     local("cd ~/vagrant-vm/test_srv_3/ && vagrant destroy -f")
     local("rm -rf ~/vagrant-vm/test_srv_3/")
+    # local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/trusty64")
     local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/xenial64")
     local("rm ~/vagrant-vm/test_srv_3/Vagrantfile")
     local("cp ~/vagrant-vm/Vagrantfile ~/vagrant-vm/test_srv_3/")
@@ -71,8 +77,20 @@ def unpack_project():
     run("cd kino-domino && alembic upgrade head")
 
 
-def deploy_from_github():
-    pass
+def clone_from_github():
+    sudo("apt-get install git -y")
+    run("mkdir projects && cd projects && git clone https://github.com/evro23x/kino-domino.git")
+    with cd("projects/kino-domino/"):
+        put('~/vagrant-vm/config.py', 'config.py')
+        put('~/vagrant-vm/alembic.ini', 'alembic.ini')
+
+
+def upgrade_project():
+    with prefix('source ~/venvs/kino-domino/bin/activate'):
+        with cd("projects/kino-domino/"):
+            run("pip install -r requirements.txt")
+            run("alembic upgrade head")
+            run("pip list")
 
 
 def bootstrap():
@@ -83,3 +101,4 @@ def bootstrap():
 
 def deploy():
     deploy_from_github()
+    upgrade_project()
