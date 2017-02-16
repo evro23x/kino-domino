@@ -54,7 +54,7 @@ def setup_pg():
     wait_for_ssh()
     sudo("apt-get install postgresql python-psycopg2 libpq-dev -y")
     sudo("apt-get install libxml2 libxslt1.1 libxml2-dev libxslt1-dev python-libxml2 -y")
-    sudo("apt-get install python-libxslt1 python-dev python-setuptools build-essential libssl-dev libffi-dev -y")
+    sudo("apt-get install python-libxslt1 python3-dev python-setuptools build-essential libssl-dev libffi-dev -y")
     run("sudo -u postgres psql -c 'CREATE DATABASE db_name;'")
     run("sudo -u postgres psql -c \"CREATE USER username WITH password 'password';\"")
     run("sudo -u postgres psql -c 'GRANT ALL privileges ON DATABASE db_name TO username;'")
@@ -88,9 +88,13 @@ def clone_from_github():
 def upgrade_project():
     with prefix('source ~/venvs/kino-domino/bin/activate'):
         with cd("projects/kino-domino/"):
+            put('~/vagrant-vm/config.py', 'config.py')
+            put('~/vagrant-vm/alembic.ini', 'alembic.ini')
+            run("git pull origin master")
             run("pip install -r requirements.txt")
             run("alembic upgrade head")
             run("pip list")
+            run("nohup python kino_domino_bot.py > /dev/null &")
 
 
 def bootstrap():
@@ -100,5 +104,5 @@ def bootstrap():
 
 
 def deploy():
-    deploy_from_github()
+    # deploy_from_github()
     upgrade_project()
