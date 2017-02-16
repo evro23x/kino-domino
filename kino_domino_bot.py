@@ -41,11 +41,12 @@ def get_a_similar_movie(bot, update):
         bot.sendMessage(update.message.chat_id, text="Извини, но я не слышал о таком фильме. Назови какой-нибудь другой фильм,я попробую еще раз.")
         return GET_A_SIMILAR_MOVIE     
       
-    similar_movie = find_similiar_movie(movie_id)
-    if similar_movie == "Я не смог ничего найти! ну и вкусы у тебя!":
-        bot.sendMessage(update.message.chat_id, text="Извини, но похожих фильмов нет")
+    similar_movie_title = find_similiar_movie(movie_id)
+    if similar_movie_title is None:
+        bot.sendMessage(update.message.chat_id, text="Извини, но я не слышал о таком фильме. Назови какой-нибудь другой фильм,я попробую еще раз.")
+        return GET_A_SIMILAR_MOVIE
     else:
-        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " + similar_movie
+        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " + similar_movie_title + '\n'"Нажми /cancel, чтобы закончить"
         bot.sendMessage(update.message.chat_id, bot_phrase)
 
 
