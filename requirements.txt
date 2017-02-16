@@ -1,4 +1,3 @@
-telegram
 alembic==0.8.10
 appnope==0.1.0
 beautifulsoup4==4.5.3
