@@ -1,8 +1,9 @@
+telegram
 alembic==0.8.10
 appnope==0.1.0
 beautifulsoup4==4.5.3
 bs4==0.0.1
-certifi==2016.9.26
+certifi==2017.1.23
 cffi==1.9.1
 click==6.6
 cryptography==1.7.2
@@ -37,10 +38,9 @@ requests==2.5.3
 simplegeneric==0.8.1
 six==1.10.0
 SQLAlchemy==1.1.4
-telegram==0.0.1
 tmdbsimple==1.5.0
 traitlets==4.3.1
-urllib3==1.19.1
+urllib3==1.20
 wcwidth==0.1.7
 Werkzeug==0.11.15
 win-unicode-console==0.5
