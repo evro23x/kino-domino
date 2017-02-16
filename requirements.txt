@@ -27,7 +27,6 @@ packaging==16.8
 paramiko==2.1.1
 pexpect==4.2.1
 pickleshare==0.7.4
-pkg-resources==0.0.0
 prompt-toolkit==1.0.9
 psycopg2==2.6.2
 ptyprocess==0.5.1
