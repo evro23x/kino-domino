@@ -198,4 +198,4 @@ if __name__ == '__main__':
     #print(get_movie_id(user_input))
     #print(find_similiar_movie(get_movie_id(user_input)))
     #find_and_add_similar_movies_to_current_movies()
-    find_and_add_similar_movies_to_movies_in_database_by_id(250, 260)   
+    #find_and_add_similar_movies_to_movies_in_database_by_id(342, 442)   
