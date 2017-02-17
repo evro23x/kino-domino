@@ -15,7 +15,7 @@ class FindTheaterFail(Exception):
 
 # Узнаем id фильма
 def get_movie_id1(user_input):
-    movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input[1:-1]))).first()
+    movie = Movies.query.filter(Movies.time_slots.any() , Movies.title.ilike("%{}%".format(user_input[1:-1]))).first()
     if movie:
         return movie.id
 
@@ -54,7 +54,6 @@ def parse_time_table(time_table):
     return result
 
 
-# итоговая функция поменять datetime(....) на datetime.now() база старая поэтому дату сейчас хардкодим
 def main_search(user_input, user_coordinates):
     try:
         movie_id = get_movie_id1(user_input)
@@ -68,24 +67,14 @@ def main_search(user_input, user_coordinates):
         datetime.now(),
         datetime.now()+timedelta(days=3))
     return parse_time_table(time_table)
-#(55.736796, 37.586822)
-#55.737231, 37.597371
-#    user_coordinates = (55.728883, 37.568683)
 
 
 if __name__ == '__main__':
-    user_coordinates = (55.736796, 37.586822)
-    movie_id = 14
+    #user_coordinates = (55.736796, 37.586822)
+    #movie_id = 14
     #print(find_closest_theater(user_coordinates, movie_id))
-    user_input = "пассажиры"
-    print(main_search(user_input, user_coordinates))
-    #print(get_movie_id(user_input))
+    #user_input = "Злые улицы"
+    #print(main_search(user_input, user_coordinates))
+    #print(get_movie_id1(user_input))
     #movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id).all()
     #print(movie_slots[0].theater.latitude)
-
-
-
-
-
-#user_loc = MetroStations.query.filter(MetroStations.title == user_input).first().latitude, 
-#MetroStations.query.filter(MetroStations.title == user_input).first().longitude
