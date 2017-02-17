@@ -23,6 +23,7 @@ env.key_filename = config.env_key_filename
 # запуск миграций
 # запуск парсера
 # запуск телеграмм бота
+#
 
 
 def wait_for_ssh():
