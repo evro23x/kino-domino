@@ -85,6 +85,11 @@ def clone_from_github():
         put('~/vagrant-vm/alembic.ini', 'alembic.ini')
 
 
+def background_run(command):
+    command = 'nohup {} &> /dev/null &'.format(command)
+    run(command, pty=False)
+
+
 def upgrade_project():
     with prefix('source ~/venvs/kino-domino/bin/activate'):
         with cd("projects/kino-domino/"):
@@ -93,8 +98,7 @@ def upgrade_project():
             run("git pull origin master")
             run("pip install -r requirements.txt")
             run("alembic upgrade head")
-            run("pip list")
-            run("nohup python kino_domino_bot.py > /dev/null &")
+            execute(background_run, "python kino_domino_bot.py")
 
 
 def bootstrap():
