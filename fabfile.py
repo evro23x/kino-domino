@@ -99,8 +99,8 @@ def upgrade_project():
             run("git pull origin master")
             run("pip install -r requirements.txt")
             run("alembic upgrade head")
-            run("nohup python kino_domino_bot.py > /dev/null &")
-            # execute(background_run, "python kino_domino_bot.py")
+            # run("nohup python kino_domino_bot.py > /dev/null &")
+            execute(background_run, "python kino_domino_bot.py")
 
 
 def bootstrap():
