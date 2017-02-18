@@ -70,6 +70,7 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
+    pass
     #user_coordinates = (55.736796, 37.586822)
     #movie_id = 14
     #print(find_closest_theater(user_coordinates, movie_id))
