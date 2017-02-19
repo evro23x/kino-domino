@@ -14,8 +14,8 @@ class FindTheaterFail(Exception):
 
 
 # Узнаем id фильма
-def get_movie_id1(user_input):
-    movie = Movies.query.filter(Movies.time_slots.any() , Movies.title.ilike("%{}%".format(user_input[1:-1]))).first()
+def get_current_movie_id(user_input):
+    movie = Movies.query.filter(Movies.time_slots.any() , Movies.title.ilike("%{}%".format(user_input))).first()
     if movie:
         return movie.id
 
@@ -56,7 +56,7 @@ def parse_time_table(time_table):
 
 def main_search(user_input, user_coordinates):
     try:
-        movie_id = get_movie_id1(user_input)
+        movie_id = get_current_movie_id(user_input)
     except(UserRequestFail):
         return "Прости! я всего лишь бот, я не нашел такого фильма, либо нашел слишком много! Уточни запрос."
     try:
@@ -74,8 +74,8 @@ if __name__ == '__main__':
     #user_coordinates = (55.736796, 37.586822)
     #movie_id = 14
     #print(find_closest_theater(user_coordinates, movie_id))
-    #user_input = "Злые улицы"
+    user_input = "Лего"
     #print(main_search(user_input, user_coordinates))
-    #print(get_movie_id1(user_input))
+    print(get_current_movie_id(user_input))
     #movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id).all()
     #print(movie_slots[0].theater.latitude)
