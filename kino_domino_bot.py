@@ -1,7 +1,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler 
 #from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove #InlineQueryResult
-from db_quering import get_movie_id1, find_closest_theater, get_movie_slots_in_theater_at_period, parse_time_table, main_search
+from db_quering import get_current_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, parse_time_table, main_search
 from request_movie_db import get_movie_id, find_similiar_movie
 import config
 
@@ -56,7 +56,7 @@ def get_a_movie_name(bot, update):
     global USER_INPUT 
     chat_id = update.message.chat_id
     USER_INPUT[chat_id] = update.message.text
-    movie_id = get_movie_id1(update.message.text)
+    movie_id = get_current_movie_id(update.message.text)
     if movie_id is None:
         bot.sendMessage(update.message.chat_id, text="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
         return GET_A_MOVIE_NAME
