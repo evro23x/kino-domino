@@ -71,6 +71,8 @@ class TimeSlots(Base):
     time = Column(DateTime)
     max_price = Column(Integer())
     min_price = Column(Integer())
+    __table_args__ = (UniqueConstraint('movie_theaters_id', 'movie_id',
+                                       'movie_formats_id', 'time', name='time_slot_uniqueness'),)
 
     def __init__(self, max_price=None, min_price=None, movie_theaters_id=None, movie_id=None,
                  movie_formats_id=None, time=None):

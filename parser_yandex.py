@@ -164,24 +164,37 @@ def check_movie_in_db():
         print('Парсим фильм {}'.format(movie['event']['title']))
 
         check_movie_exist = db_session.query(Movies).filter_by(title=movie['event']['title'],
-                                                               start_date=movie['scheduleInfo']['dateReleased']).first()
+                                                               yandex_movie_id=movie['event']['id'],
+                                                               ).first()
+
+        movie_info_from_tmdb = get_movie_info_from_tmdb_by_movie_title(movie['event']['title'])
+
         if check_movie_exist:
-            movie_info_from_tdb = get_movie_info_from_tmdb_by_movie_title(movie['event']['title'])
-            if movie_info_from_tdb is None:
-                continue
-            if check_movie_exist.rating != movie_info_from_tdb["rating"]:
+            if movie_info_from_tmdb is not None and check_movie_exist.rating != movie_info_from_tmdb["rating"]:
                 db_session.query(Movies).filter(Movies.id == check_movie_exist.id).update({
-                    "rating": movie_info_from_tdb["rating"],
-                    "genre": movie_info_from_tdb["genre"],
-                    "duration": movie_info_from_tdb["duration"],
-                    "description": movie_info_from_tdb["description"]
+                    "rating": movie_info_from_tmdb["rating"],
+                    "genre": movie_info_from_tmdb["genre"],
+                    "duration": movie_info_from_tmdb["duration"],
+                    "description": movie_info_from_tmdb["description"]
                 })
                 db_session.commit()
         else:
-            get_or_create(db_session, Movies,
-                          yandex_movie_id=movie['event']['id'],
-                          title=movie['event']['title'],
-                          start_date=movie['scheduleInfo']['dateReleased'])
+            if movie_info_from_tmdb:
+                get_or_create(db_session, Movies,
+                              yandex_movie_id=movie['event']['id'],
+                              title=movie['event']['title'],
+                              start_date=movie['scheduleInfo']['dateReleased'],
+                              rating=movie_info_from_tmdb["rating"],
+                              genre=movie_info_from_tmdb["genre"],
+                              duration=movie_info_from_tmdb["duration"],
+                              description=movie_info_from_tmdb["description"],
+                              )
+            else:
+                get_or_create(db_session, Movies,
+                              yandex_movie_id=movie['event']['id'],
+                              title=movie['event']['title'],
+                              start_date=movie['scheduleInfo']['dateReleased'],
+                              )
     return movies_id
 
 
@@ -253,13 +266,14 @@ def check_time_slot_in_db(movies_id):
                             max_price_from_json = ticket['price']['max']
                             min_price_from_json = ticket['price']['min']
 
-                        get_or_create(db_session, TimeSlots,
-                                      movie_theaters_id=theater.id,
-                                      movie_id=movie.id,
-                                      movie_formats_id=movie_format.id,
-                                      time=datetime.strptime(datetime_from_json, "%Y-%m-%dT%H:%M:%S"),
-                                      max_price=max_price_from_json,
-                                      min_price=min_price_from_json)
+                        time_slot = get_or_create(db_session, TimeSlots,
+                                                  movie_theaters_id=theater.id,
+                                                  movie_id=movie.id,
+                                                  movie_formats_id=movie_format.id,
+                                                  time=datetime.strptime(datetime_from_json, "%Y-%m-%dT%H:%M:%S"),
+                                                  )
+                        db_session.query(TimeSlots).filter_by(id=time_slot.id).update(
+                            {"max_price": max_price_from_json, "min_price": min_price_from_json})
 
 
 def main():
