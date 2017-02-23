@@ -12,20 +12,6 @@ env.user = config.env_user
 env.key_filename = config.env_key_filename
 
 
-# update и upgrade системы
-# установка пострги
-# создание базы и доступов к базе
-# клонирование репозитория гита
-# создание виртуального окружения
-# включение виртуального окружения
-# установка пакетов и зависимостей
-# копирование конфигов(база и алембик) из гитигнора
-# запуск миграций
-# запуск парсера
-# запуск телеграмм бота
-#
-
-
 def wait_for_ssh():
     s = socket.socket()
     address = '192.168.23.3'
@@ -43,8 +29,8 @@ def wait_for_ssh():
 def reload_vm():
     local("cd ~/vagrant-vm/test_srv_3/ && vagrant destroy -f")
     local("rm -rf ~/vagrant-vm/test_srv_3/")
-    # local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/trusty64")
-    local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/xenial64")
+    local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/trusty64")
+    # local("mkdir ~/vagrant-vm/test_srv_3/ && cd ~/vagrant-vm/test_srv_3/ && vagrant init ubuntu/xenial64")
     local("rm ~/vagrant-vm/test_srv_3/Vagrantfile")
     local("cp ~/vagrant-vm/Vagrantfile ~/vagrant-vm/test_srv_3/")
     local("cd ~/vagrant-vm/test_srv_3/ && ssh-keygen -R 192.168.23.3")
@@ -53,6 +39,7 @@ def reload_vm():
 
 def setup_pg():
     wait_for_ssh()
+    sudo("apt-get update")
     sudo("apt-get install postgresql python-psycopg2 libpq-dev -y")
     sudo("apt-get install libxml2 libxslt1.1 libxml2-dev libxslt1-dev python-libxml2 -y")
     sudo("apt-get install python-libxslt1 python3-dev python-setuptools build-essential libssl-dev libffi-dev -y")
@@ -66,24 +53,23 @@ def setup_pg():
 
 def unpack_project():
     sudo("apt-get install git -y")
-    run("git clone https://github.com/evro23x/kino-domino.git")
+    run("mkdir projects && cd projects && git clone https://github.com/evro23x/kino-domino.git")
     with cd("kino-domino/"):
         put('~/vagrant-vm/config.py', 'config.py')
         put('~/vagrant-vm/alembic.ini', 'alembic.ini')
     run("mkdir ~/venvs")
     sudo("apt-get install python3.4-venv -y")
     run("cd venvs && python3 -m venv kino-domino")
-    run("source venvs/kino-domino/bin/activate")
-    run("cd kino-domino && pip install -r requirements.txt")
-    run("cd kino-domino && alembic upgrade head")
+    with prefix('source ~/venvs/kino-domino/bin/activate'):
+        with cd("~/projects/kino-domino/"):
+            run("pip install -r requirements.txt")
+            run("alembic upgrade head")
 
 
-def clone_from_github():
-    sudo("apt-get install git -y")
-    run("mkdir projects && cd projects && git clone https://github.com/evro23x/kino-domino.git")
-    with cd("projects/kino-domino/"):
-        put('~/vagrant-vm/config.py', 'config.py')
-        put('~/vagrant-vm/alembic.ini', 'alembic.ini')
+def bootstrap():
+    reload_vm()
+    setup_pg()
+    unpack_project()
 
 
 def background_run(command):
@@ -91,7 +77,7 @@ def background_run(command):
     run(command, pty=False)
 
 
-def upgrade_project():
+def deploy():
     with prefix('source ~/venvs/kino-domino/bin/activate'):
         with cd("projects/kino-domino/"):
             put('~/vagrant-vm/config.py', 'config.py')
@@ -101,14 +87,3 @@ def upgrade_project():
             run("alembic upgrade head")
             # run("nohup python kino_domino_bot.py > /dev/null &")
             execute(background_run, "python kino_domino_bot.py")
-
-
-def bootstrap():
-    reload_vm()
-    setup_pg()
-    unpack_project()
-
-
-def deploy():
-    # deploy_from_github()
-    upgrade_project()

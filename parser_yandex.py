@@ -7,7 +7,7 @@ import tmdbsimple as tmdb
 import requests
 from win_unicode_console import enable
 import pprint
-
+# pprint.pprint(metro_list, width=1)
 
 enable()
 
@@ -52,20 +52,16 @@ def get_metro_stations_from_hh_api():
     for metro in get_json_from_url('https://api.hh.ru/metro/1')['lines']:
         print('Парсим все станции метро на ветке - {}'.format(metro['name']))
         for station in metro['stations']:
-            # print(station)
-            # metro_from_db = get_or_create(db_session, MetroStations,
-            #                               title=station['name'],
-            #                               latitude=station['lat'],
-            #                               longitude=station['lng'])
             metro_list.append(station)
     print(type(metro_list))
     return metro_list
 
 
-def get_or_create_metro_stations():
-    # pprint.pprint(get_metro_stations_from_hh_api(), width=1)
-    get_metro_stations_from_hh_api()
-    # metro_stations = get_metro_stations_from_hh_api()
+def get_or_create_metro_stations(metro_stations):
+    get_or_create(db_session, MetroStations,
+                  title=metro_stations['name'],
+                  latitude=metro_stations['lat'],
+                  longitude=metro_stations['lng'])
 
 
 def check_cinema_in_db(all_metro):
@@ -286,7 +282,8 @@ def check_time_slot_in_db(movies_id):
 
 def main():
     tmdb.API_KEY = tmdb_api_key
-    get_or_create_metro_stations()
+    metro_list = get_metro_stations_from_hh_api()
+    get_or_create_metro_stations(metro_list)
     # all_metro = check_metro_in_db()
     # check_cinema_in_db(all_metro)
     # movies_id_list = check_movie_in_db()
