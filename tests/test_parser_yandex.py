@@ -4,11 +4,12 @@ from parser_yandex import *
 
 
 class TestParserYandex:
-    def test_get_metro_stations_from_hh_api_type(self):
-        assert (str(type(get_metro_stations_from_hh_api())) == str("<class 'list'>"))
+    pass
+    # def test_get_metro_stations_from_hh_api_type(self):
+    #     assert (str(type(get_metro_stations_from_hh_api())) == str("<class 'list'>"))
 
-    def test_add_metro_stations(self):
-        assert (str(type(add_metro_stations())) == str("<class 'list'>"))
+    # def test_add_metro_stations(self):
+    #     assert (str(type(add_metro_stations())) == str("<class 'list'>"))
 
         # def test_type_error(self):
         #     with pytest.raises(TypeError):
