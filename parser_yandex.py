@@ -57,7 +57,7 @@ def get_metro_stations_from_hh_api():
     return metro_list
 
 
-def get_or_create_metro_stations(metro_stations):
+def add_metro_stations(metro_stations):
     get_or_create(db_session, MetroStations,
                   title=metro_stations['name'],
                   latitude=metro_stations['lat'],
@@ -283,7 +283,7 @@ def check_time_slot_in_db(movies_id):
 def main():
     tmdb.API_KEY = tmdb_api_key
     metro_list = get_metro_stations_from_hh_api()
-    get_or_create_metro_stations(metro_list)
+    add_metro_stations(metro_list)
     # all_metro = check_metro_in_db()
     # check_cinema_in_db(all_metro)
     # movies_id_list = check_movie_in_db()
