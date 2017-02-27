@@ -20,12 +20,12 @@ def get_plot_keywords_ids_by_movie_id(movie_id):
     return [r[0] for r in db_session.query(MoviesKeywords.keyword_id).filter(MoviesKeywords.movie_id == movie_id).all()]
 
 
-def find_similiar_movie(movie_id):
+def find_similar_movie(movie_id):
     movie = Movies.query.filter(Movies.id == movie_id).first()
-    same_genre_movies = Movies.query.filter(Movies.genre == movie.genre, 
-                                            Movies.rating.between(movie.rating-1.5, movie.rating+1.5)).all()
+    same_genre_movies = Movies.query.filter(Movies.genre == movie.genre,
+                                            Movies.rating.between(movie.rating - 1.5, movie.rating + 1.5)).all()
     max_matches = 0
-    similliar_movie_title = None
+    similar_movie_title = None
     movie_keywords_ids = get_plot_keywords_ids_by_movie_id(movie_id)
     set_movie_keywords_ids = set(movie_keywords_ids)
     for each_movie in same_genre_movies:
@@ -34,12 +34,12 @@ def find_similiar_movie(movie_id):
         current_max_matches = len(set_movie_keywords_ids.intersection(set(each_movie_keywords_ids)))
         if current_max_matches > max_matches and each_movie.id != movie_id:
             max_matches = current_max_matches
-            similliar_movie_title = each_movie.title
-    
-    return similliar_movie_title 
+            similar_movie_title = each_movie.title
+
+    return similar_movie_title
 
 
-def add_plotkeywords_in_database(key_words):
+def add_plot_keywords_in_database(key_words):
     for key_word in key_words["keywords"]:
         is_keyword_in_database = db_session.query(exists().where(PlotKeyword.keyword == key_word["name"]))[0][0]
         if not is_keyword_in_database:
@@ -102,24 +102,24 @@ def check_if_movie_exists_if_not_add(movie, us_release_date):
         if movie.runtime is None:
             movie.runtime = 0
         check_movie_exist = db_session.query(Movies).filter_by(title=movie.title,
-                                                                genre=movie.genres[0]["name"],
-                                                                duration=movie.runtime,
-                                                                start_date=us_release_date).first()
+                                                               genre=movie.genres[0]["name"],
+                                                               duration=movie.runtime,
+                                                               start_date=us_release_date).first()
         if check_movie_exist:
             if check_movie_exist.rating != movie.vote_average:
-                    db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": movie.vote_average})
+                db_session.query(Movies).filter_by(id=check_movie_exist.id).update({"rating": movie.vote_average})
         else:
             movie_to_add = Movies(title=movie.title, genre=movie.genres[0]["name"],
-                                    duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
+                                  duration=movie.runtime, rating=movie.vote_average, start_date=us_release_date)
             db_session.add(movie_to_add)
             key_words = movie.keywords()
-            add_plotkeywords_in_database(key_words)
+            add_plot_keywords_in_database(key_words)
             add_keywords_and_movie_to_associatve_table(movie_to_add.id, key_words)
     except IndexError:
         print("Index Error!")
 
 
-def add_movies_to_DB(from_movie_id, to_movie_id):
+def add_movies_to_database(from_movie_id, to_movie_id):
     for movie_num in range(from_movie_id, to_movie_id):
         try:
             print(movie_num)
@@ -141,8 +141,8 @@ def add_movies_to_DB(from_movie_id, to_movie_id):
 
 
 def get_current_movies():
-    all_time_slots = TimeSlots.query.filter(TimeSlots.time.between(datetime.now(), 
-        datetime.now()+timedelta(days=3))).all()
+    all_time_slots = TimeSlots.query.filter(TimeSlots.time.between(datetime.now(),
+                                                                   datetime.now() + timedelta(days=3))).all()
     current_movies = []
     for slot in all_time_slots:
         if not slot.movie in current_movies:
@@ -192,10 +192,10 @@ def find_and_add_similar_movies_to_movies_in_database_by_id(min_id, max_id):
 
 if __name__ == '__main__':
     tmdb.API_KEY = tmdb_api_key
-    #add_movies_to_DB(1780, 1800)
-    #user_input = "Джек Ричер"
-    #print(user_input)
-    #print(get_movie_id(user_input))
-    #print(find_similiar_movie(get_movie_id(user_input)))
-    #find_and_add_similar_movies_to_current_movies()
-    #find_and_add_similar_movies_to_movies_in_database_by_id(342, 442)   
+    # add_movies_to_database(1780, 1800)
+    # user_input = "Джек Ричер"
+    # print(user_input)
+    # print(get_movie_id(user_input))
+    # print(find_similar_movie(get_movie_id(user_input)))
+    # find_and_add_similar_movies_to_current_movies()
+    # find_and_add_similar_movies_to_movies_in_database_by_id(200, 220)

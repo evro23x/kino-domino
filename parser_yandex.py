@@ -1,13 +1,13 @@
 from math import sqrt
-from bs4 import BeautifulSoup
 from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movies, MovieFormats
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, timedelta
 from request_movie_db import get_movie_info_from_tmdb_by_movie_title
 from config import tmdb_api_key
 import tmdbsimple as tmdb
 import requests
-import json
 from win_unicode_console import enable
+import pprint
+# pprint.pprint(metro_list, width=1)
 
 enable()
 
@@ -40,7 +40,7 @@ def get_json_from_url(url):
     return requests.get(url).json()
 
 
-def check_metro_in_db():
+def get_metro_stations_from_hh_api():
     """
     Актуализация перечня станций метро
 
@@ -52,12 +52,16 @@ def check_metro_in_db():
     for metro in get_json_from_url('https://api.hh.ru/metro/1')['lines']:
         print('Парсим все станции метро на ветке - {}'.format(metro['name']))
         for station in metro['stations']:
-            metro_from_db = get_or_create(db_session, MetroStations,
-                                          title=station['name'],
-                                          latitude=station['lat'],
-                                          longitude=station['lng'])
-            metro_list.append(metro_from_db)
+            metro_list.append(station)
+    print(type(metro_list))
     return metro_list
+
+
+def add_metro_stations(metro_stations):
+    get_or_create(db_session, MetroStations,
+                  title=metro_stations['name'],
+                  latitude=metro_stations['lat'],
+                  longitude=metro_stations['lng'])
 
 
 def check_cinema_in_db(all_metro):
@@ -278,10 +282,12 @@ def check_time_slot_in_db(movies_id):
 
 def main():
     tmdb.API_KEY = tmdb_api_key
-    all_metro = check_metro_in_db()
-    check_cinema_in_db(all_metro)
-    movies_id_list = check_movie_in_db()
-    check_time_slot_in_db(movies_id_list)
+    metro_list = get_metro_stations_from_hh_api()
+    add_metro_stations(metro_list)
+    # all_metro = check_metro_in_db()
+    # check_cinema_in_db(all_metro)
+    # movies_id_list = check_movie_in_db()
+    # check_time_slot_in_db(movies_id_list)
 
 
 if __name__ == '__main__':
