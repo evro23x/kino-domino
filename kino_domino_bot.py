@@ -3,13 +3,15 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Conve
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
 from db_quering import get_current_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, \
     parse_time_table, main_search
-from request_movie_db import get_movie_id, find_similir_movie
+from request_movie_db import get_movie_id, find_similar_movie
 import config
 
 GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = range(4)
 
 USER_INPUT = {}
 USER_LOCATION = {}
+
+FINAL_PHRASE = "Нажми /cancel, чтобы закончить.\nДля возобновления диалога нажми /start"
 
 
 def show_error(bot, update, error):
@@ -50,13 +52,14 @@ def get_a_similar_movie(bot, update):
                         text=not_found_error_msg)
         return GET_A_SIMILAR_MOVIE
 
-    similar_movie_title = find_similir_movie(movie_id)
+    similar_movie_title = find_similar_movie(movie_id)
     if similar_movie_title is None:
         bot.sendMessage(update.message.chat_id,
                         text=not_found_error_msg)
         return GET_A_SIMILAR_MOVIE
     else:
-        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " + similar_movie_title + '\n'"Нажми /cancel, чтобы закончить"
+        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: "\
+                     + similar_movie_title + '\n' + FINAL_PHRASE
         bot.sendMessage(update.message.chat_id, bot_phrase)
 
 
@@ -87,7 +90,7 @@ def analyze_user_location(bot, update):
     print(USER_INPUT)
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
     print(timetable)
-    final_phrase = timetable + "Нажми /cancel, чтобы закончить"
+    final_phrase = timetable + FINAL_PHRASE
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
 
 
