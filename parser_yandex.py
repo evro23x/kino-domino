@@ -7,6 +7,7 @@ import tmdbsimple as tmdb
 import requests
 from win_unicode_console import enable
 import pprint
+
 # pprint.pprint(metro_list, width=1)
 
 enable()
@@ -42,26 +43,45 @@ def get_json_from_url(url):
 
 def get_metro_stations_from_hh_api():
     """
-    Актуализация перечня станций метро
+    Получение информации о станциях метро
 
-    Разбираем станции метро полученные от api hh и складываем в базу.
+    Разбираем станции метро полученные от api hh.
     Информация о существующих станциях метро неизменна.
     Количество станций может добавляться использую функцию get_or_create.
     """
-    metro_list = []
+    metro_list_from_api = []
     for metro in get_json_from_url('https://api.hh.ru/metro/1')['lines']:
-        print('Парсим все станции метро на ветке - {}'.format(metro['name']))
+        # print('Парсим все станции метро на ветке - {}'.format(metro['name']))
         for station in metro['stations']:
-            metro_list.append(station)
-    print(type(metro_list))
-    return metro_list
+            metro_list_from_api.append(station)
+    return metro_list_from_api
 
 
 def add_metro_stations(metro_stations):
-    get_or_create(db_session, MetroStations,
-                  title=metro_stations['name'],
-                  latitude=metro_stations['lat'],
-                  longitude=metro_stations['lng'])
+    """
+    Актуализация списка станций метро в db
+
+    Разбираем станции метро полученные от api hh и складываем в базу.
+    Количество станций может добавляться использую функцию get_or_create.
+    """
+    metro_list_from_db = []
+    for station in metro_stations:
+        metro_list_from_db.append(get_or_create(db_session, MetroStations,
+                                                title=station['name'],
+                                                latitude=station['lat'],
+                                                longitude=station['lng']))
+    return metro_list_from_db
+
+
+def get_list_phones_from_string(phone_num_string):
+    """
+    Получаем список телефонов кинотеатра из строки, тупем перебора, храниться до трех номеров.
+    """
+    phones = ['', '', '']
+    if phone_num_string and len(phone_num_string) != 0:
+        for i in range(len(phone_num_string[0]['numbers'])):
+            phones[i] = phone_num_string[0]['numbers'][i]
+    return phones
 
 
 def check_cinema_in_db(all_metro):
@@ -77,11 +97,14 @@ def check_cinema_in_db(all_metro):
     cinema_list = []
     url_cinema_list = 'https://afisha.yandex.ru/api/events/cinema/places?limit=200&offset=0&city=moscow'
     for cinema in get_json_from_url(url_cinema_list)['items']:
+        print(cinema['phones'])
+        exit()
 
-        phones = ['', '', '']
-        if cinema['phones'] and len(cinema['phones']) != 0:
-            for i in range(len(cinema['phones'][0]['numbers'])):
-                phones[i] = cinema['phones'][0]['numbers'][i]
+        phones = get_list_phones_from_string(cinema['phones'])
+        # phones = ['', '', '']
+        # if cinema['phones'] and len(cinema['phones']) != 0:
+        #     for i in range(len(cinema['phones'][0]['numbers'])):
+        #         phones[i] = cinema['phones'][0]['numbers'][i]
 
         latitude = float(cinema['coordinates']['latitude'])
         longitude = float(cinema['coordinates']['longitude'])
@@ -283,11 +306,14 @@ def check_time_slot_in_db(movies_id):
 def main():
     tmdb.API_KEY = tmdb_api_key
     metro_list = get_metro_stations_from_hh_api()
+    # print(metro_list)
+    # exit()
     add_metro_stations(metro_list)
+    # print(type(metro_list_from_db[0]))
     # all_metro = check_metro_in_db()
     # check_cinema_in_db(all_metro)
-    # movies_id_list = check_movie_in_db()
-    # check_time_slot_in_db(movies_id_list)
+    movies_id_list = check_movie_in_db()
+    check_time_slot_in_db(movies_id_list)
 
 
 if __name__ == '__main__':
