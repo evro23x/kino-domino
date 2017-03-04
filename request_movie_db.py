@@ -11,7 +11,7 @@ enable()
 
 
 def get_movie_id(user_input):
-    movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input[1:-1]))).first()
+    movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input))).first()
     if movie:
         return movie.id
 
