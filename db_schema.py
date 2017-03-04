@@ -129,8 +129,8 @@ class PlotKeyword(Base):
 class MoviesKeywords(Base):
     __tablename__ = 'tmdb_plot_keywords_connecction'
     id = Column(Integer, primary_key=True)
-    keyword_id = Column(Integer, ForeignKey('tmdb_plot_keywords.id'))
-    movie_id = Column(Integer, ForeignKey('movies.id'))
+    keyword_id = Column(Integer, ForeignKey('tmdb_plot_keywords.id'), index=True)
+    movie_id = Column(Integer, ForeignKey('movies.id'), index=True)
 
 
 if __name__ == '__main__':

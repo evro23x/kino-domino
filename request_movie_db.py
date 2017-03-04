@@ -9,17 +9,17 @@ from win_unicode_console import enable
 
 enable()
 
-
+@profile
 def get_movie_id(user_input):
     movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input))).first()
     if movie:
         return movie.id
 
-
+@profile
 def get_plot_keywords_ids_by_movie_id(movie_id):
     return [r[0] for r in db_session.query(MoviesKeywords.keyword_id).filter(MoviesKeywords.movie_id == movie_id).all()]
 
-
+@profile
 def find_similar_movie(movie_id):
     movie = Movies.query.filter(Movies.id == movie_id).first()
     same_genre_movies = Movies.query.filter(Movies.genre == movie.genre,
@@ -193,9 +193,13 @@ def find_and_add_similar_movies_to_movies_in_database_by_id(min_id, max_id):
 if __name__ == '__main__':
     tmdb.API_KEY = tmdb_api_key
     # add_movies_to_database(1780, 1800)
-    # user_input = "Джек Ричер"
-    # print(user_input)
-    # print(get_movie_id(user_input))
-    # print(find_similar_movie(get_movie_id(user_input)))
+    #user_input = "бегущий по лезвию"
+    #print(user_input)
+    #print(get_movie_id(user_input))
+    #print(find_similar_movie(get_movie_id(user_input)))
+    #user_input2 = "Дневник Бриджет Джонс"
+    #print(user_input2)
+    #print(get_movie_id(user_input2))
+    #print(find_similar_movie(get_movie_id(user_input2)))
     # find_and_add_similar_movies_to_current_movies()
     # find_and_add_similar_movies_to_movies_in_database_by_id(200, 220)
