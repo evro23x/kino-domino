@@ -11,7 +11,7 @@ GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = 
 USER_INPUT = {}
 USER_LOCATION = {}
 
-FINAL_PHRASE = "Нажми /cancel, чтобы закончить.\nДля возобновления диалога нажми /start"
+FINAL_PHRASE = "Для возобновления диалога нажми /start"
 
 
 def show_error(bot, update, error):
@@ -59,7 +59,7 @@ def get_a_similar_movie(bot, update):
         return GET_A_SIMILAR_MOVIE
     else:
         bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: "\
-                     + similar_movie_title + '\n' + FINAL_PHRASE
+                     + similar_movie_title + '\nНажми /cancel, чтобы закончить.'
         bot.sendMessage(update.message.chat_id, bot_phrase)
 
 
@@ -90,12 +90,12 @@ def analyze_user_location(bot, update):
     print(USER_INPUT)
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
     print(timetable)
-    final_phrase = timetable + FINAL_PHRASE
+    final_phrase = timetable + 'Нажми /cancel, чтобы закончить.'
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
 
 
 def cancel(bot, update):
-    bot.sendMessage(update.message.chat_id, 'Пока! Надеюсь, я помог тебе!',
+    bot.sendMessage(update.message.chat_id, 'Пока! Надеюсь, я помог тебе! \n' + FINAL_PHRASE,
                     reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END

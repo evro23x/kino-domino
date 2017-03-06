@@ -9,17 +9,17 @@ from win_unicode_console import enable
 
 enable()
 
-@profile
+# @profile
 def get_movie_id(user_input):
     movie = Movies.query.filter(Movies.title.ilike("%{}%".format(user_input))).first()
     if movie:
         return movie.id
 
-@profile
+# @profile
 def get_plot_keywords_ids_by_movie_id(movie_id):
     return [r[0] for r in db_session.query(MoviesKeywords.keyword_id).filter(MoviesKeywords.movie_id == movie_id).all()]
 
-@profile
+# @profile
 def find_similar_movie(movie_id):
     movie = Movies.query.filter(Movies.id == movie_id).first()
     same_genre_movies = Movies.query.filter(Movies.genre == movie.genre,
