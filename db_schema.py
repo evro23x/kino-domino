@@ -26,9 +26,6 @@ class MetroStations(Base):
         self.latitude = latitude
         self.longitude = longitude
 
-    # def __repr__(self):
-    #     return '<{} metro station>'.format(self.title)
-
 
 class MovieTheaters(Base):
     __tablename__ = 'movie_theaters'
@@ -139,6 +136,8 @@ class BotLog(Base):
     log_time = Column(DateTime)
     user_telegram_id = Column(Integer())
     user_telegram_name = Column(String(50))
+    msg_in = Column(String(500))
+    msg_out = Column(String(500))
 
     def __init__(self, log_time=None, user_telegram_id=None, user_telegram_name=None,):
         self.user_telegram_id = user_telegram_id
