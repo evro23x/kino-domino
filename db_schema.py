@@ -133,5 +133,18 @@ class MoviesKeywords(Base):
     movie_id = Column(Integer, ForeignKey('movies.id'), index=True)
 
 
+class BotLog(Base):
+    __tablename__ = 'bot_logger'
+    id = Column(Integer, primary_key=True)
+    log_time = Column(DateTime)
+    user_telegram_id = Column(Integer())
+    user_telegram_name = Column(String(50))
+
+    def __init__(self, log_time=None, user_telegram_id=None, user_telegram_name=None,):
+        self.user_telegram_id = user_telegram_id
+        self.log_time = log_time
+        self.user_telegram_name = user_telegram_name
+
+
 if __name__ == '__main__':
     Base.metadata.create_all(bind=engine)
