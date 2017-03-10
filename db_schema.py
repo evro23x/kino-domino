@@ -139,10 +139,12 @@ class BotLog(Base):
     msg_in = Column(String(500))
     msg_out = Column(String(500))
 
-    def __init__(self, log_time=None, user_telegram_id=None, user_telegram_name=None,):
+    def __init__(self, log_time=None, user_telegram_id=None, user_telegram_name=None,msg_in=None,msg_out=None):
         self.user_telegram_id = user_telegram_id
         self.log_time = log_time
         self.user_telegram_name = user_telegram_name
+        self.msg_in = msg_in
+        self.msg_out = msg_out
 
 
 if __name__ == '__main__':

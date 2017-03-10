@@ -1,3 +1,7 @@
+from db_schema import db_session, BotLog
+from datetime import datetime
+
+
 def get_or_create(current_session, model, **kwargs):
     """
     Получить либо создать
@@ -13,3 +17,12 @@ def get_or_create(current_session, model, **kwargs):
         current_session.add(instance)
         current_session.commit()
         return instance
+
+
+def add_log(update, msg_in='', msg_out=''):
+    user_telegram_id = update.message.chat.id
+    user_telegram_name = update.message.chat.first_name + ' ' + update.message.chat.last_name
+
+    instance = model(datetime.today(), user_telegram_id, user_telegram_name,  msg_in, msg_out)
+    current_session.add(instance)
+    current_session.commit()

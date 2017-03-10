@@ -22,57 +22,87 @@ def show_error(bot, update, error):
 
 
 def greet_user(bot, update):
-    print(datetime("%Y-%m-%dT%H:%M:%S"))
-    user_telegram_name = update.message.chat.first_name + ' ' + update.message.chat.last_name
-    variants = [['Посмотреть кино дома'], ['Сходить в кино']]
-    custom_keyboard = variants
-    rm = ReplyKeyboardMarkup(custom_keyboard)
+    rm = ReplyKeyboardMarkup([['Посмотреть кино дома'], ['Сходить в кино']])
     bot.sendMessage(update.message.chat_id, text="Привет, друг! Чего бы тебе хотелось?", reply_markup=rm)
     get_or_create(db_session, BotLog,
-                  # log_time=datetime.today("%Y-%m-%dT%H:%M:%S"),
-                  log_time=datetime.now(),
+                  log_time=datetime.today(),
                   user_telegram_id=update.message.chat.id,
-                  user_telegram_name=user_telegram_name,
-                  msg_in='/start',
-                  msg_out='')
-
+                  user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                  msg_in="/start",
+                  msg_out="")
     return WHAT_TO_DO_NEXT
 
 
 def what_to_do_next(bot, update):
-    user_choice = [update.message.text]
     variants = [['Посмотреть кино дома'], ['Сходить в кино']]
-    if user_choice == variants[1]:
+    if [update.message.text] == variants[1]:
         bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?",
                         reply_markup=ReplyKeyboardRemove())
+        get_or_create(db_session, BotLog,
+                      log_time=datetime.today(),
+                      user_telegram_id=update.message.chat.id,
+                      user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                      msg_in="Посмотреть кино дома",
+                      msg_out="")
         return GET_A_MOVIE_NAME
     else:
         bot.sendMessage(update.message.chat_id,
                         text="Здорово! Знаешь, у меня хороший вкус, да и фильмов я много пересмотрел, так что могу "
                              "тебе подсказать. Назови мне фильм, а я тебе порекомендую похожие.",
                         reply_markup=ReplyKeyboardRemove())
+        get_or_create(db_session, BotLog,
+                      log_time=datetime.today(),
+                      user_telegram_id=update.message.chat.id,
+                      user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                      msg_in="Сходить в кино",
+                      msg_out="")
         return GET_A_SIMILAR_MOVIE
 
 
 def get_a_similar_movie(bot, update):
-    # chat_id = update.message.chat_id
     movie_id = get_movie_id(update.message.text)
-    print(movie_id)
+    get_or_create(db_session, BotLog,
+                  log_time=datetime.today(),
+                  user_telegram_id=update.message.chat.id,
+                  user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                  msg_in=update.message.text,
+                  msg_out="")
+
     not_found_error_msg = "Извини, но я не слышал о таком фильме. Назови какой-нибудь другой фильм,я попробую еще раз."
     if movie_id is None:
         bot.sendMessage(update.message.chat_id,
                         text=not_found_error_msg)
+        get_or_create(db_session, BotLog,
+                      log_time=datetime.today(),
+                      user_telegram_id=update.message.chat.id,
+                      user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                      msg_in="",
+                      msg_out=not_found_error_msg)
+
         return GET_A_SIMILAR_MOVIE
 
     similar_movie_title = find_similar_movie(movie_id)
     if similar_movie_title is None:
         bot.sendMessage(update.message.chat_id,
                         text=not_found_error_msg)
+        get_or_create(db_session, BotLog,
+                      log_time=datetime.today(),
+                      user_telegram_id=update.message.chat.id,
+                      user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                      msg_in="",
+                      msg_out=not_found_error_msg)
+
         return GET_A_SIMILAR_MOVIE
     else:
         bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " \
                      + similar_movie_title + '\nНажми /cancel, чтобы закончить.'
         bot.sendMessage(update.message.chat_id, bot_phrase)
+        get_or_create(db_session, BotLog,
+                      log_time=datetime.today(),
+                      user_telegram_id=update.message.chat.id,
+                      user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                      msg_in="",
+                      msg_out=bot_phrase)
 
 
 def get_a_movie_name(bot, update):
@@ -80,17 +110,38 @@ def get_a_movie_name(bot, update):
     chat_id = update.message.chat_id
     USER_INPUT[chat_id] = update.message.text
     movie_id = get_current_movie_id(update.message.text)
+    get_or_create(db_session, BotLog,
+                  log_time=datetime.today(),
+                  user_telegram_id=update.message.chat.id,
+                  user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                  msg_in=update.message.text,
+                  msg_out="")
+
     if movie_id is None:
-        bot.sendMessage(update.message.chat_id,
+        bot.sendMessage(chat_id,
                         text="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
+        get_or_create(db_session, BotLog,
+                      log_time=datetime.today(),
+                      user_telegram_id=update.message.chat.id,
+                      user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                      msg_in="",
+                      msg_out="Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз.")
+
         return GET_A_MOVIE_NAME
 
     print(USER_INPUT)
     location_keyboard = KeyboardButton(text="Найди кино рядом", request_location=True)
     custom_keyboard = [[location_keyboard]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-    bot.sendMessage(update.message.chat_id, text="Отличный выбор! Давай теперь выберем кинотеатр?",
+    bot.sendMessage(chat_id, text="Отличный выбор! Давай теперь выберем кинотеатр?",
                     reply_markup=reply_markup)
+    get_or_create(db_session, BotLog,
+                  log_time=datetime.today(),
+                  user_telegram_id=update.message.chat.id,
+                  user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                  msg_in="",
+                  msg_out="Отличный выбор! Давай теперь выберем кинотеатр?")
+
     return ANALYZE_USER_LOCATION
 
 
@@ -98,10 +149,20 @@ def analyze_user_location(bot, update):
     chat_id = update.message.chat_id
     global USER_LOCATION
     USER_LOCATION[chat_id] = (update.message.location.latitude, update.message.location.longitude)
-    print(USER_LOCATION)
-    print(USER_INPUT)
+    get_or_create(db_session, BotLog,
+                  log_time=datetime.today(),
+                  user_telegram_id=update.message.chat.id,
+                  user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                  msg_in=str(update.message.location.latitude) + " " + str(update.message.location.longitude),
+                  msg_out="")
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
-    print(timetable)
+    get_or_create(db_session, BotLog,
+                  log_time=datetime.today(),
+                  user_telegram_id=update.message.chat.id,
+                  user_telegram_name=update.message.chat.first_name + ' ' + update.message.chat.last_name,
+                  msg_in="",
+                  msg_out=timetable)
+
     final_phrase = timetable + 'Нажми /cancel, чтобы закончить.'
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
 
