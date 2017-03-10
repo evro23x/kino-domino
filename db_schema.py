@@ -26,9 +26,6 @@ class MetroStations(Base):
         self.latitude = latitude
         self.longitude = longitude
 
-    # def __repr__(self):
-    #     return '<{} metro station>'.format(self.title)
-
 
 class MovieTheaters(Base):
     __tablename__ = 'movie_theaters'
@@ -131,6 +128,23 @@ class MoviesKeywords(Base):
     id = Column(Integer, primary_key=True)
     keyword_id = Column(Integer, ForeignKey('tmdb_plot_keywords.id'), index=True)
     movie_id = Column(Integer, ForeignKey('movies.id'), index=True)
+
+
+class BotLog(Base):
+    __tablename__ = 'bot_logger'
+    id = Column(Integer, primary_key=True)
+    log_time = Column(DateTime)
+    user_telegram_id = Column(Integer())
+    user_telegram_name = Column(String(50))
+    msg_in = Column(String(500))
+    msg_out = Column(String(500))
+
+    def __init__(self, log_time=None, user_telegram_id=None, user_telegram_name=None,msg_in=None,msg_out=None):
+        self.user_telegram_id = user_telegram_id
+        self.log_time = log_time
+        self.user_telegram_name = user_telegram_name
+        self.msg_in = msg_in
+        self.msg_out = msg_out
 
 
 if __name__ == '__main__':
