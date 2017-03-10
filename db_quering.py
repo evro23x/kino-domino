@@ -1,6 +1,7 @@
+import calendar
 from datetime import datetime, timedelta
 from geopy.distance import vincenty
-from db_schema import MovieTheaters, Movies, db_session, TimeSlots
+from db_schema import MovieTheaters, Movies, db_session, TimeSlots, MovieFormats
 
 
 class UserRequestFail(Exception):
@@ -48,9 +49,20 @@ def parse_time_table(time_table):
     movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().title
     movie_name = Movies.query.filter(Movies.id == time_table[0].movie_id).first().title
     result = "Расписание кинотеатра {} :\n".format(movie_theater_name)
+    first_date = datetime.date(time_table[0].time)
+    result += "{}\n".format(movie_name)
+    result += "{}({}):\n".format(first_date, calendar.day_name[datetime.weekday(first_date)])
     for time_slot in time_table:
+        new_date = datetime.date(time_slot.time)
+        if new_date != first_date:
+            result += "{}({}):\n".format(new_date, calendar.day_name[datetime.weekday(new_date)])
         starting_time = time_slot.time
-        result += "{} в {}\n".format(movie_name, starting_time)
+        result += "Сеанс в {:%H:%M} формат - {}, цены: {}-{}\n".format(
+            datetime.time(starting_time),
+            MovieFormats.query.filter(
+            MovieFormats.id == time_slot.movie_formats_id).first().title,
+        time_slot.min_price/100, time_slot.max_price/100
+        )
     return result
 
 
@@ -70,12 +82,12 @@ def main_search(user_input, user_coordinates):
 
 
 if __name__ == '__main__':
-    pass
-    #user_coordinates = (55.736796, 37.586822)
-    #movie_id = 14
+    #pass
+    user_coordinates = (55.736796, 37.586822)
+    #movie_id = 1
     #print(find_closest_theater(user_coordinates, movie_id))
-    user_input = "Лего"
-    #print(main_search(user_input, user_coordinates))
-    print(get_current_movie_id(user_input))
+    user_input = "логан"
+    print(main_search(user_input, user_coordinates))
+    #print(get_current_movie_id(user_input))
     #movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id).all()
     #print(movie_slots[0].theater.latitude)
