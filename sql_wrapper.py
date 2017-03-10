@@ -23,6 +23,6 @@ def add_log(update, msg_in='', msg_out=''):
     user_telegram_id = update.message.chat.id
     user_telegram_name = update.message.chat.first_name + ' ' + update.message.chat.last_name
 
-    instance = model(datetime.today(), user_telegram_id, user_telegram_name,  msg_in, msg_out)
-    current_session.add(instance)
-    current_session.commit()
+    instance = BotLog(datetime.today(), user_telegram_id, user_telegram_name,  msg_in, msg_out)
+    db_session.add(instance)
+    db_session.commit()
