@@ -5,6 +5,9 @@ from db_quering import get_current_movie_id, find_closest_theater, get_movie_slo
     parse_time_table, main_search
 from request_movie_db import get_movie_id, find_similar_movie
 import config
+from db_schema import db_session, BotLog
+from datetime import datetime, date, timedelta
+from sql_wrapper import get_or_create
 
 GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = range(4)
 
@@ -19,11 +22,20 @@ def show_error(bot, update, error):
 
 
 def greet_user(bot, update):
-    print('Вызван/ start')
+    print(datetime("%Y-%m-%dT%H:%M:%S"))
+    user_telegram_name = update.message.chat.first_name + ' ' + update.message.chat.last_name
     variants = [['Посмотреть кино дома'], ['Сходить в кино']]
     custom_keyboard = variants
     rm = ReplyKeyboardMarkup(custom_keyboard)
     bot.sendMessage(update.message.chat_id, text="Привет, друг! Чего бы тебе хотелось?", reply_markup=rm)
+    get_or_create(db_session, BotLog,
+                  # log_time=datetime.today("%Y-%m-%dT%H:%M:%S"),
+                  log_time=datetime.now(),
+                  user_telegram_id=update.message.chat.id,
+                  user_telegram_name=user_telegram_name,
+                  msg_in='/start',
+                  msg_out='')
+
     return WHAT_TO_DO_NEXT
 
 
@@ -58,7 +70,7 @@ def get_a_similar_movie(bot, update):
                         text=not_found_error_msg)
         return GET_A_SIMILAR_MOVIE
     else:
-        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: "\
+        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " \
                      + similar_movie_title + '\nНажми /cancel, чтобы закончить.'
         bot.sendMessage(update.message.chat_id, bot_phrase)
 
