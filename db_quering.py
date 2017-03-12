@@ -1,10 +1,9 @@
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from geopy.distance import vincenty
 from db_schema import MovieTheaters, Movies, db_session, TimeSlots, MovieFormats
-import pprint
 
-# pprint.pprint(metro_list, width=1)
+DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 
 
 class UserRequestFail(Exception):
@@ -49,29 +48,64 @@ def get_movie_slots_in_theater_at_period(movie_id, theater_id, date_from, date_t
     ).order_by('time').all()
 
 
-def parse_time_table(time_table):
-    pprint.pprint(time_table[0].__dict__, width=1)
+def get_movie_slots_in_theater_at_day(movie_id, theater_id, query_date):
+    date_to = query_date + timedelta(1)
+    current_time = datetime.now()
+    return TimeSlots.query.filter(
+        TimeSlots.movie_id == movie_id,
+        TimeSlots.movie_theaters_id == theater_id,
+        TimeSlots.time > current_time,
+        TimeSlots.time.between(query_date, date_to)
+    ).order_by('movie_formats_id', 'time').all()
 
-    # print(time_table[0].__dict__)
-    movie_theater_id = time_table[0].movie_theaters_id
-    movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().title
-    movie_name = Movies.query.filter(Movies.id == time_table[0].movie_id).first().title
-    result = "Расписание кинотеатра {} :\n".format(movie_theater_name)
-    first_date = datetime.date(time_table[0].time)
-    result += "{}\n".format(movie_name)
-    result += "{}({}):\n".format(first_date, calendar.day_name[datetime.weekday(first_date)])
-    for time_slot in time_table:
-        new_date = datetime.date(time_slot.time)
-        if new_date != first_date:
-            result += "{}({}):\n".format(new_date, calendar.day_name[datetime.weekday(new_date)])
-        starting_time = time_slot.time
-        result += "Сеанс в {:%H:%M} формат - {}, цены: {}-{}\n".format(
-            datetime.time(starting_time),
-            MovieFormats.query.filter(
-                MovieFormats.id == time_slot.movie_formats_id).first().title,
-            time_slot.min_price / 100, time_slot.max_price / 100
-        )
+
+def prepare_time_table(movie_id, closest_theater_id):
+    movie_format_list = MovieFormats.query.all()
+    movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == closest_theater_id).first().title
+    movie_name = Movies.query.filter(Movies.id == movie_id).first().title
+    result = "Расписание кинотеатра {} :\n{}\n".format(movie_theater_name, movie_name)
+
+    for counter in range(3):
+        query_date = date.today() + timedelta(counter)
+        time_table = get_movie_slots_in_theater_at_day(movie_id, closest_theater_id, query_date)
+        if time_table:
+            result += "\n{}({}):\n".format(query_date, DAYS[datetime.weekday(query_date)])
+            unique_movie_format_list = set()
+            for time_slot in time_table:
+                curr_format = str(movie_format_list[time_slot.movie_formats_id-1])[1:-1]
+                if curr_format not in unique_movie_format_list:
+                    result += "Формат - {}\n".format(curr_format)
+                unique_movie_format_list.add(curr_format)
+                result += "Сеанс в {:%H:%M}".format(datetime.time(time_slot.time))
+                if 0 < time_slot.min_price != time_slot.max_price > 0:
+                    result += ", цена: {}-{}".format(int(time_slot.min_price/100), int(time_slot.max_price/100))
+                elif time_slot.min_price == 0 and time_slot.max_price > 0:
+                    result += ", цена: {}".format(int(time_slot.max_price/100))
+                elif time_slot.min_price > 0 and time_slot.max_price == 0:
+                    result += ", цена: {}".format(int(time_slot.min_price / 100))
+                elif 0 < time_slot.min_price == time_slot.max_price > 0:
+                    result += ", цена: {}".format(int(time_slot.min_price/100))
+                result += "\n"
     return result
+    #
+    # movie_theater_id = time_table[0].movie_theaters_id
+    # movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().title
+    # movie_name = Movies.query.filter(Movies.id == time_table[0].movie_id).first().title
+    # result = "Расписание кинотеатра {} :\n{}\n".format(movie_theater_name, movie_name)
+    # first_date = datetime.date(time_table[0].time)
+    # result += "{}({}):\n".format(first_date, calendar.day_name[datetime.weekday(first_date)])
+    # for time_slot in time_table:
+    #     new_date = datetime.date(time_slot.time)
+    #     if new_date != first_date:
+    #         result += "{}({}):\n".format(new_date, calendar.day_name[datetime.weekday(new_date)])
+    #     starting_time = time_slot.time
+    #     result += "Сеанс в {:%H:%M} формат - {}, цены: {}-{}\n".format(
+    #         datetime.time(starting_time),
+    #         MovieFormats.query.filter(
+    #             MovieFormats.id == time_slot.movie_formats_id).first().title,
+    #         time_slot.min_price / 100, time_slot.max_price / 100
+    #     )
+    # return result
 
 
 def main_search(user_input, user_coordinates):
@@ -83,25 +117,11 @@ def main_search(user_input, user_coordinates):
         closest_theater_id = find_closest_theater(user_coordinates, movie_id)
     except(FindTheaterFail):
         return "Прости я всего лишь бот, я не нашел кинотеатров где сейчас идет этот фильм!"
-    time_table = get_movie_slots_in_theater_at_period(movie_id, closest_theater_id,
-                                                      datetime.now(),
-                                                      datetime.now() + timedelta(days=3))
-    # print(time_table)
-    return parse_time_table(time_table)
+    return prepare_time_table(movie_id, closest_theater_id)
 
 
 if __name__ == '__main__':
-    # pass
-    main_search("Зверопой", (55.747553, 37.853142))
-    # print(get_current_movie_id('a'))
-    # print(find_closest_theater((55.747553, 37.853142), 8054))
-    # print(get_movie_slots_in_theater_at_period(get_current_movie_id('a'), closest_theater_id,
-    #                                            datetime.now(),
-    #                                            datetime.now() + timedelta(days=3)))
-
-    # user_coordinates = (55.736796, 37.586822)
-    # movie_id = 1
-    # print(find_closest_theater(user_coordinates, movie_id))
+    pass
     # user_input = "логан"
     # print(main_search(user_input, user_coordinates))
     # print(get_current_movie_id(user_input))

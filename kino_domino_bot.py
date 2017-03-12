@@ -1,8 +1,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 # from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
-from db_quering import get_current_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, \
-    parse_time_table, main_search
+from db_quering import get_current_movie_id, main_search
 from request_movie_db import get_movie_id, find_similar_movie
 import config
 from datetime import datetime, date, timedelta
@@ -89,11 +88,8 @@ def analyze_user_location(bot, update):
     global USER_LOCATION
     USER_LOCATION[chat_id] = (update.message.location.latitude, update.message.location.longitude)
     add_log(update, msg_in=str(update.message.location.latitude)+" "+str(update.message.location.longitude), msg_out='')
-    print(USER_INPUT)
-    print(USER_LOCATION)
-    exit(0)
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
-    add_log(update, msg_in="", msg_out=timetable)
+    # add_log(update, msg_in="", msg_out=timetable)
     final_phrase = timetable + 'Нажми /cancel, чтобы закончить.'
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
 
