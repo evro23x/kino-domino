@@ -89,6 +89,9 @@ def analyze_user_location(bot, update):
     global USER_LOCATION
     USER_LOCATION[chat_id] = (update.message.location.latitude, update.message.location.longitude)
     add_log(update, msg_in=str(update.message.location.latitude)+" "+str(update.message.location.longitude), msg_out='')
+    print(USER_INPUT)
+    print(USER_LOCATION)
+    exit(0)
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
     add_log(update, msg_in="", msg_out=timetable)
     final_phrase = timetable + 'Нажми /cancel, чтобы закончить.'

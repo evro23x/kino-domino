@@ -2,6 +2,9 @@ import calendar
 from datetime import datetime, timedelta
 from geopy.distance import vincenty
 from db_schema import MovieTheaters, Movies, db_session, TimeSlots, MovieFormats
+import pprint
+
+# pprint.pprint(metro_list, width=1)
 
 
 class UserRequestFail(Exception):
@@ -16,21 +19,23 @@ class FindTheaterFail(Exception):
 
 # Узнаем id фильма
 def get_current_movie_id(user_input):
-    movie = Movies.query.filter(Movies.time_slots.any() , Movies.title.ilike("%{}%".format(user_input))).first()
+    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(user_input))).first()
     if movie:
         return movie.id
 
 
 def find_closest_theater(user_coordinates, movie_id):
-    movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id, 
-                                                    TimeSlots.time.between(datetime.now(),datetime.now()+timedelta(days=3))).all()
+    movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id,
+                                                     TimeSlots.time.between(datetime.now(),
+                                                                            datetime.now() + timedelta(days=3))).all()
     theaters_coordinates = []
     for slot in movie_slots:
         theaters_coordinates.append((slot.theater.latitude, slot.theater.longitude))
     if theaters_coordinates:
-        closest_coordinates = min(theaters_coordinates, key=lambda coordinates: vincenty(coordinates, user_coordinates).km)
-        closest_theater_id = MovieTheaters.query.filter(MovieTheaters.latitude == closest_coordinates[0], 
-            MovieTheaters.longitude == closest_coordinates[1]).first().id
+        closest_coordinates = min(theaters_coordinates,
+                                  key=lambda coordinates: vincenty(coordinates, user_coordinates).km)
+        closest_theater_id = MovieTheaters.query.filter(MovieTheaters.latitude == closest_coordinates[0],
+                                                        MovieTheaters.longitude == closest_coordinates[1]).first().id
         return closest_theater_id
     else:
         raise FindTheaterFail()
@@ -45,6 +50,9 @@ def get_movie_slots_in_theater_at_period(movie_id, theater_id, date_from, date_t
 
 
 def parse_time_table(time_table):
+    pprint.pprint(time_table[0].__dict__, width=1)
+
+    # print(time_table[0].__dict__)
     movie_theater_id = time_table[0].movie_theaters_id
     movie_theater_name = MovieTheaters.query.filter(MovieTheaters.id == movie_theater_id).first().title
     movie_name = Movies.query.filter(Movies.id == time_table[0].movie_id).first().title
@@ -60,8 +68,8 @@ def parse_time_table(time_table):
         result += "Сеанс в {:%H:%M} формат - {}, цены: {}-{}\n".format(
             datetime.time(starting_time),
             MovieFormats.query.filter(
-            MovieFormats.id == time_slot.movie_formats_id).first().title,
-        time_slot.min_price/100, time_slot.max_price/100
+                MovieFormats.id == time_slot.movie_formats_id).first().title,
+            time_slot.min_price / 100, time_slot.max_price / 100
         )
     return result
 
@@ -75,19 +83,27 @@ def main_search(user_input, user_coordinates):
         closest_theater_id = find_closest_theater(user_coordinates, movie_id)
     except(FindTheaterFail):
         return "Прости я всего лишь бот, я не нашел кинотеатров где сейчас идет этот фильм!"
-    time_table = get_movie_slots_in_theater_at_period(movie_id, closest_theater_id, 
-        datetime.now(),
-        datetime.now()+timedelta(days=3))
+    time_table = get_movie_slots_in_theater_at_period(movie_id, closest_theater_id,
+                                                      datetime.now(),
+                                                      datetime.now() + timedelta(days=3))
+    # print(time_table)
     return parse_time_table(time_table)
 
 
 if __name__ == '__main__':
-    #pass
-    user_coordinates = (55.736796, 37.586822)
-    #movie_id = 1
-    #print(find_closest_theater(user_coordinates, movie_id))
-    user_input = "логан"
-    print(main_search(user_input, user_coordinates))
-    #print(get_current_movie_id(user_input))
-    #movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id).all()
-    #print(movie_slots[0].theater.latitude)
+    # pass
+    main_search("Зверопой", (55.747553, 37.853142))
+    # print(get_current_movie_id('a'))
+    # print(find_closest_theater((55.747553, 37.853142), 8054))
+    # print(get_movie_slots_in_theater_at_period(get_current_movie_id('a'), closest_theater_id,
+    #                                            datetime.now(),
+    #                                            datetime.now() + timedelta(days=3)))
+
+    # user_coordinates = (55.736796, 37.586822)
+    # movie_id = 1
+    # print(find_closest_theater(user_coordinates, movie_id))
+    # user_input = "логан"
+    # print(main_search(user_input, user_coordinates))
+    # print(get_current_movie_id(user_input))
+    # movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id).all()
+    # print(movie_slots[0].theater.latitude)
