@@ -26,3 +26,8 @@ def add_log(update, msg_in='', msg_out=''):
     instance = BotLog(datetime.today(), user_telegram_id, user_telegram_name,  msg_in, msg_out)
     db_session.add(instance)
     db_session.commit()
+
+
+def reset_movies_status():
+    session.query().filter(User.username == form.username.data).update({"no_of_logins": (User.no_of_logins + 1)})
+    session.commit()
