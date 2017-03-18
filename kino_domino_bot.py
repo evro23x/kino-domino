@@ -31,7 +31,6 @@ def what_to_do_next(bot, update):
     if [update.message.text] == variants[1]:
         rm = ReplyKeyboardMarkup([['По названию фильма'], ['Премьеры']])
         bot.sendMessage(update.message.chat_id, text="Выбери, по каким критериям будем искать фильм?", reply_markup=rm)
-        print(1)
         return GET_A_CINEMA_CHOOSE
     else:
         bot.sendMessage(update.message.chat_id,
@@ -43,18 +42,14 @@ def what_to_do_next(bot, update):
 
 
 def get_a_cinema_choose(bot, update):
-    print(4)
     variants = [['По названию фильма'], ['Премьеры']]
     if [update.message.text] == variants[0]:
-        print(3)
         bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?",
                         reply_markup=ReplyKeyboardRemove())
         add_log(update, msg_in='По названию фильма', msg_out='')
         return GET_A_MOVIE_NAME
     else:
-        print(2)
         movies_dict = get_premier_dict()
-        print(movies_dict)
         premier_info = "Премьеры недели:\n\n"
         for movie_obj in movies_dict:
             premier_info += movie_obj.title + "\n"
@@ -125,7 +120,7 @@ def cancel(bot, update):
 
 
 def main():
-    updater = Updater(config.telegram_api_key)
+    updater = Updater(telegram_api_key)
     dp = updater.dispatcher
 
     conv_handler = ConversationHandler(
