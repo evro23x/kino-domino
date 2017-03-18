@@ -1,8 +1,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 # from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
-from db_quering import get_current_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, \
-    parse_time_table, main_search
+from db_quering import get_current_movie_id, main_search
 from request_movie_db import get_movie_id, find_similar_movie
 import config
 from datetime import datetime, date, timedelta
