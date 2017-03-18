@@ -31,3 +31,7 @@ def add_log(update, msg_in='', msg_out=''):
 def reset_movies_status():
     db_session.query(Movies).update({"movie_status": 0})
     db_session.commit()
+
+
+def get_premier_dict():
+    return db_session.query(Movies).filter_by(movie_status=1).all()
