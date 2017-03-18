@@ -1,4 +1,4 @@
-from db_schema import db_session, BotLog
+from db_schema import db_session, BotLog, Movies
 from datetime import datetime
 
 
@@ -29,5 +29,5 @@ def add_log(update, msg_in='', msg_out=''):
 
 
 def reset_movies_status():
-    session.query().filter(User.username == form.username.data).update({"no_of_logins": (User.no_of_logins + 1)})
-    session.commit()
+    db_session.query(Movies).update({"movie_status": 0})
+    db_session.commit()
