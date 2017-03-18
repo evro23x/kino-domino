@@ -112,11 +112,11 @@ def main_search(user_input, user_coordinates):
     try:
         movie_id = get_current_movie_id(user_input)
     except(UserRequestFail):
-        return "Прости! я всего лишь бот, я не нашел такого фильма, либо нашел слишком много! Уточни запрос."
+        return "Прости! Я всего лишь бот, я не нашел такого фильма, либо нашел слишком много! Уточни запрос."
     try:
         closest_theater_id = find_closest_theater(user_coordinates, movie_id)
     except(FindTheaterFail):
-        return "Прости я всего лишь бот, я не нашел кинотеатров где сейчас идет этот фильм!"
+        return "Прости! Я всего лишь бот, я не нашел кинотеатров где сейчас идет этот фильм!"
     return prepare_time_table(movie_id, closest_theater_id)
 
 
