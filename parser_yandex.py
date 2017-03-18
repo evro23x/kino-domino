@@ -7,29 +7,14 @@ import tmdbsimple as tmdb
 import requests
 from win_unicode_console import enable
 import pprint
+from sql_wrapper import get_or_create, reset_movies_status
 
 # pprint.pprint(metro_list, width=1)
 
 enable()
 
 ITERATIONS = 3
-
-
-def get_or_create(current_session, model, **kwargs):
-    """
-    Получить либо создать
-
-    Функция получения данных из базы по передаваемым параметрам.
-    Создает новую запись в базе если запрашиваемый отбъект отсуствует.
-    """
-    instance = current_session.query(model).filter_by(**kwargs).first()
-    if instance:
-        return instance
-    else:
-        instance = model(**kwargs)
-        current_session.add(instance)
-        current_session.commit()
-        return instance
+MOVIE_STATUS = {'archive': '0', 'premier': '1', 'release': '2'}
 
 
 def get_json_from_url(url):
@@ -51,7 +36,7 @@ def get_metro_stations_from_hh_api():
     """
     metro_list_from_api = []
     for metro in get_json_from_url('https://api.hh.ru/metro/1')['lines']:
-        # print('Парсим все станции метро на ветке - {}'.format(metro['name']))
+        print('Парсим все станции метро на ветке - {}'.format(metro['name']))
         for station in metro['stations']:
             metro_list_from_api.append(station)
     return metro_list_from_api
@@ -66,6 +51,7 @@ def add_metro_stations(metro_stations):
     """
     metro_list_from_db = []
     for station in metro_stations:
+        print('Проверяем станцию - {}'.format(station['name']))
         metro_list_from_db.append(get_or_create(db_session, MetroStations,
                                                 title=station['name'],
                                                 latitude=station['lat'],
@@ -170,6 +156,7 @@ def check_movie_in_db():
     склеиваем два списка и отправляется в цикл по перебору всех страниц списка фильмов
     далее итоговый список всех фильмов перебираем и складываем в базу
     """
+    reset_movies_status()
 
     url_new_movie_list = 'https://afisha.yandex.ru/api/events/selection/week-premiere?' \
                          'limit=12&offset=0&hasMixed=0&city=moscow'
@@ -205,6 +192,11 @@ def check_movie_in_db():
                     "description": movie_info_from_tmdb["description"]
                 })
                 db_session.commit()
+            else:
+                db_session.query(Movies).filter(Movies.id == check_movie_exist.id).update({
+                    "movie_status": MOVIE_STATUS['release'],
+                })
+                db_session.commit()
         else:
             if movie_info_from_tmdb:
                 get_or_create(db_session, Movies,
@@ -215,13 +207,18 @@ def check_movie_in_db():
                               genre=movie_info_from_tmdb["genre"],
                               duration=movie_info_from_tmdb["duration"],
                               description=movie_info_from_tmdb["description"],
+                              create_date=datetime.today(),
+                              movie_status=MOVIE_STATUS['release']
                               )
             else:
                 get_or_create(db_session, Movies,
                               yandex_movie_id=movie['event']['id'],
                               title=movie['event']['title'],
                               start_date=movie['scheduleInfo']['dateReleased'],
+                              create_date=datetime.today(),
+                              movie_status=MOVIE_STATUS['release']
                               )
+    set_premier_movie_status()
     return movies_id
 
 
@@ -303,15 +300,26 @@ def check_time_slot_in_db(movies_id):
                             {"max_price": max_price_from_json, "min_price": min_price_from_json})
 
 
+def set_premier_movie_status():
+    url_new_movie_list = 'https://afisha.yandex.ru/api/events/selection/week-premiere?' \
+                         'limit=12&offset=0&hasMixed=0&city=moscow'
+    new_movie_list = get_json_from_url(url_new_movie_list)['data']
+    for movie in new_movie_list:
+        check_movie_exist = db_session.query(Movies).filter_by(title=movie['event']['title'],
+                                                               yandex_movie_id=movie['event']['id'],
+                                                               ).first()
+        if check_movie_exist:
+            print("Обновляю movie_status для фильма = {}".format(check_movie_exist.title))
+            db_session.query(Movies).filter(Movies.id == check_movie_exist.id).update({
+                "movie_status": MOVIE_STATUS['premier'],
+            })
+            db_session.commit()
+
+
 def main():
     tmdb.API_KEY = tmdb_api_key
     metro_list = get_metro_stations_from_hh_api()
-    # print(metro_list)
-    # exit()
     add_metro_stations(metro_list)
-    # print(type(metro_list_from_db[0]))
-    # all_metro = check_metro_in_db()
-    # check_cinema_in_db(all_metro)
     movies_id_list = check_movie_in_db()
     check_time_slot_in_db(movies_id_list)
 
