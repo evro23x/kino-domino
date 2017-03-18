@@ -1,14 +1,13 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 # from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
-from db_quering import get_current_movie_id, find_closest_theater, get_movie_slots_in_theater_at_period, \
-    parse_time_table, main_search
+from db_quering import get_current_movie_id, main_search
 from request_movie_db import get_movie_id, find_similar_movie
-import config
+from config import tmdb_api_key_for_bot, telegram_api_key
 from datetime import datetime, date, timedelta
-from sql_wrapper import add_log
+from sql_wrapper import add_log, get_premier_dict
 
-GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE = range(4)
+GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE, GET_A_CINEMA_CHOOSE = range(5)
 
 USER_INPUT = {}
 USER_LOCATION = {}
@@ -21,19 +20,18 @@ def show_error(bot, update, error):
 
 
 def greet_user(bot, update):
-    rm = ReplyKeyboardMarkup([['Посмотреть кино дома'], ['Сходить в кино']])
+    rm = ReplyKeyboardMarkup([['Посмотреть кино дома'], ['Сходить в кинотеатр']])
     bot.sendMessage(update.message.chat_id, text="Привет, друг! Чего бы тебе хотелось?", reply_markup=rm)
     add_log(update, msg_in='/start', msg_out='')
     return WHAT_TO_DO_NEXT
 
 
 def what_to_do_next(bot, update):
-    variants = [['Посмотреть кино дома'], ['Сходить в кино']]
+    variants = [['Посмотреть кино дома'], ['Сходить в кинотеатр']]
     if [update.message.text] == variants[1]:
-        bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?",
-                        reply_markup=ReplyKeyboardRemove())
-        add_log(update, msg_in='Сходить в кино', msg_out='')
-        return GET_A_MOVIE_NAME
+        rm = ReplyKeyboardMarkup([['По названию фильма'], ['Премьеры']])
+        bot.sendMessage(update.message.chat_id, text="Выбери, по каким критериям будем искать фильм?", reply_markup=rm)
+        return GET_A_CINEMA_CHOOSE
     else:
         bot.sendMessage(update.message.chat_id,
                         text="Здорово! Знаешь, у меня хороший вкус, да и фильмов я много пересмотрел, так что могу "
@@ -41,6 +39,22 @@ def what_to_do_next(bot, update):
                         reply_markup=ReplyKeyboardRemove())
         add_log(update, msg_in='"Посмотреть кино дома"', msg_out='')
         return GET_A_SIMILAR_MOVIE
+
+
+def get_a_cinema_choose(bot, update):
+    variants = [['По названию фильма'], ['Премьеры']]
+    if [update.message.text] == variants[0]:
+        bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?",
+                        reply_markup=ReplyKeyboardRemove())
+        add_log(update, msg_in='По названию фильма', msg_out='')
+        return GET_A_MOVIE_NAME
+    else:
+        movies_dict = get_premier_dict()
+        premier_info = "Премьеры недели:\n\n"
+        for movie_obj in movies_dict:
+            premier_info += movie_obj.title + "\n"
+        premier_info += '\nНажми /cancel, чтобы закончить.'
+        bot.sendMessage(update.message.chat_id, text=premier_info)
 
 
 def get_a_similar_movie(bot, update):
@@ -88,10 +102,12 @@ def analyze_user_location(bot, update):
     chat_id = update.message.chat_id
     global USER_LOCATION
     USER_LOCATION[chat_id] = (update.message.location.latitude, update.message.location.longitude)
-    add_log(update, msg_in=str(update.message.location.latitude)+" "+str(update.message.location.longitude), msg_out='')
+    add_log(update, msg_in=str(update.message.location.latitude) + " " + str(update.message.location.longitude),
+            msg_out='')
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
-    add_log(update, msg_in="", msg_out=timetable)
-    final_phrase = timetable + 'Нажми /cancel, чтобы закончить.'
+    # add_log(update, msg_in="", msg_out=timetable)
+    add_log(update, msg_in="", msg_out="Результат отправлен пользователю")
+    final_phrase = timetable + '\nНажми /cancel, чтобы закончить.'
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
 
 
@@ -104,7 +120,7 @@ def cancel(bot, update):
 
 
 def main():
-    updater = Updater(config.telegram_api_key)
+    updater = Updater(telegram_api_key)
     dp = updater.dispatcher
 
     conv_handler = ConversationHandler(
@@ -112,6 +128,7 @@ def main():
 
         states={
             GET_A_MOVIE_NAME: [MessageHandler([Filters.text], get_a_movie_name)],
+            GET_A_CINEMA_CHOOSE: [MessageHandler([Filters.text], get_a_cinema_choose)],
             ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analyze_user_location)],
             WHAT_TO_DO_NEXT: [MessageHandler([Filters.text], what_to_do_next)],
             GET_A_SIMILAR_MOVIE: [MessageHandler([Filters.text], get_a_similar_movie)]

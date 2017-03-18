@@ -1,4 +1,4 @@
-from db_schema import db_session, BotLog
+from db_schema import db_session, BotLog, Movies
 from datetime import datetime
 
 
@@ -26,3 +26,12 @@ def add_log(update, msg_in='', msg_out=''):
     instance = BotLog(datetime.today(), user_telegram_id, user_telegram_name,  msg_in, msg_out)
     db_session.add(instance)
     db_session.commit()
+
+
+def reset_movies_status():
+    db_session.query(Movies).update({"movie_status": 0})
+    db_session.commit()
+
+
+def get_premier_dict():
+    return db_session.query(Movies).filter_by(movie_status=1).all()

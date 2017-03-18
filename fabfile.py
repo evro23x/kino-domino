@@ -82,6 +82,7 @@ def deploy():
         with cd("projects/kino-domino/"):
             put('~/vagrant-vm/config.py', 'config.py')
             put('~/vagrant-vm/alembic.ini', 'alembic.ini')
+            run("git checkout -- .")
             run("git pull origin master")
             run("pip install -r requirements.txt")
             run("alembic upgrade head")

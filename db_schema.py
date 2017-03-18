@@ -92,6 +92,8 @@ class Movies(Base):
     genre = Column(String(200))
     description = Column(Text)
     duration = Column(Integer, default=0)
+    movie_status = Column(Integer, default=0)
+    create_date = Column(DateTime)
     start_date = Column(String(120))
     rating = Column(Float, default=0)
     time_slots = relationship('TimeSlots', backref='movie')
