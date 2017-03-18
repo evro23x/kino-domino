@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Conve
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
 from db_quering import get_current_movie_id, main_search
 from request_movie_db import get_movie_id, find_similar_movie
-import config
+from config import tmdb_api_key_for_bot, telegram_api_key
 from datetime import datetime, date, timedelta
 from sql_wrapper import add_log, get_premier_dict
 
