@@ -305,6 +305,12 @@ def set_premier_movie_status():
                          'limit=12&offset=0&hasMixed=0&city=moscow'
     new_movie_list = get_json_from_url(url_new_movie_list)['data']
     for movie in new_movie_list:
+        url_film_info = 'https://afisha.yandex.ru/api/events/' + movie['event']['id'] + '?city=moscow'
+        film_info = get_json_from_url(url_film_info)['event']
+        videos_url = film_info['data']['videos'][0]['url']
+        last_symbol_in_url = videos_url.find('?adPartner')
+        trailer_url = videos_url[2:last_symbol_in_url]
+
         check_movie_exist = db_session.query(Movies).filter_by(title=movie['event']['title'],
                                                                yandex_movie_id=movie['event']['id'],
                                                                ).first()
@@ -312,6 +318,7 @@ def set_premier_movie_status():
             print("Обновляю movie_status для фильма = {}".format(check_movie_exist.title))
             db_session.query(Movies).filter(Movies.id == check_movie_exist.id).update({
                 "movie_status": MOVIE_STATUS['premier'],
+                "trailer_url": trailer_url,
             })
             db_session.commit()
 
