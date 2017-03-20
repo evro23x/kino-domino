@@ -52,9 +52,10 @@ def get_a_cinema_choose(bot, update):
         movies_dict = get_premier_dict()
         premier_info = "Премьеры недели:\n\n"
         for movie_obj in movies_dict:
-            premier_info += movie_obj.title + "\n"
-        premier_info += '\nНажми /cancel, чтобы закончить.'
-        bot.sendMessage(update.message.chat_id, text=premier_info)
+            premier_info += movie_obj.title
+            premier_info += " - <a href='" + movie_obj.trailer_url + "'>трейлер</a>\n"
+        bot.sendMessage(update.message.chat_id, text=premier_info, parse_mode='HTML')
+        return greet_user(bot, update)
 
 
 def get_a_similar_movie(bot, update):
