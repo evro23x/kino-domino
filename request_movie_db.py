@@ -6,7 +6,7 @@ from sqlalchemy import exists, exc
 from config import tmdb_api_key
 from db_schema import db_session, PlotKeyword, MoviesKeywords, Movies, TimeSlots
 from win_unicode_console import enable
-
+# import pprint
 enable()
 
 
@@ -53,7 +53,10 @@ def add_plot_keywords_in_database(key_words):
 
 def get_info_about_movie(tmdb_id):
     movie = tmdb.Movies(tmdb_id)
-    response = movie.info(language="ru-RU")
+    try:
+        response = movie.info(language="ru-RU")
+    except HTTPError:
+        movie = None
     return movie
 
 
@@ -65,6 +68,8 @@ def get_movie_info_from_tmdb_by_movie_title(movie_title):
 
     movie_id = search.results[0]["id"]
     movie = get_info_about_movie(movie_id)
+    if movie is None:
+        return None
 
     genre = ""
     if len(movie.genres) > 0:

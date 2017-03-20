@@ -96,6 +96,7 @@ class Movies(Base):
     create_date = Column(DateTime)
     start_date = Column(String(120))
     rating = Column(Float, default=0)
+    trailer_url = Column(Text)
     time_slots = relationship('TimeSlots', backref='movie')
     __table_args__ = (UniqueConstraint('yandex_movie_id', 'title', name='movie_uniqueness'),)
 
