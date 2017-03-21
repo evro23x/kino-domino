@@ -21,7 +21,7 @@ def show_error(bot, update, error):
 
 def greet_user(bot, update):
     rm = ReplyKeyboardMarkup([['Посмотреть кино дома'], ['Сходить в кинотеатр']])
-    bot.sendMessage(update.message.chat_id, text="Привет, друг! Чего бы тебе хотелось?", reply_markup=rm)
+    bot.sendMessage(update.message.chat_id, text="Выбери, один из пунктов меню или нажми /start", reply_markup=rm)
     add_log(update, msg_in='/start', msg_out='')
     return WHAT_TO_DO_NEXT
 
@@ -73,10 +73,10 @@ def get_a_similar_movie(bot, update):
         add_log(update, msg_in='', msg_out=not_found_error_msg)
         return GET_A_SIMILAR_MOVIE
     else:
-        bot_phrase = "Да, это хороший фильм! Если тебе он и правда нравится, то ты наверняка оценишь это: " \
-                     + similar_movie_title + '\nНажми /cancel, чтобы закончить.'
+        bot_phrase = "Да, это хороший фильм! Если тебе он понравился, то ты наверняка оценишь: " + similar_movie_title
         bot.sendMessage(update.message.chat_id, bot_phrase)
         add_log(update, msg_in='', msg_out=bot_phrase)
+        return greet_user(bot, update)
 
 
 def get_a_movie_name(bot, update):
@@ -108,8 +108,9 @@ def analyze_user_location(bot, update):
     timetable = main_search(USER_INPUT[chat_id], USER_LOCATION[chat_id])
     # add_log(update, msg_in="", msg_out=timetable)
     add_log(update, msg_in="", msg_out="Результат отправлен пользователю")
-    final_phrase = timetable + '\nНажми /cancel, чтобы закончить.'
+    final_phrase = timetable
     bot.sendMessage(update.message.chat_id, final_phrase, reply_markup=ReplyKeyboardRemove())
+    return greet_user(bot, update)
 
 
 def cancel(bot, update):
