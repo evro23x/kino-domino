@@ -1,13 +1,14 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 # from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
-from db_quering import get_current_movie_id, main_search
+from db_quering import get_current_movie_id, main_search, get_theater_by_name
 from request_movie_db import get_movie_id, find_similar_movie
 from config import tmdb_api_key_for_bot, telegram_api_key
 from datetime import datetime, date, timedelta
 from sql_wrapper import add_log, get_premier_dict
 
-GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE, GET_A_CINEMA_CHOOSE = range(5)
+GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE, GET_A_CINEMA_CHOOSE, GET_A_CINEMA_NAME \
+    = range(6)
 
 USER_INPUT = {}
 USER_LOCATION = {}
@@ -29,7 +30,7 @@ def greet_user(bot, update):
 def what_to_do_next(bot, update):
     variants = [['Посмотреть кино дома'], ['Сходить в кинотеатр']]
     if [update.message.text] == variants[1]:
-        rm = ReplyKeyboardMarkup([['По названию фильма'], ['Премьеры']])
+        rm = ReplyKeyboardMarkup([['По названию фильма'], ['По названию кинотеатра'], ['Премьеры']])
         bot.sendMessage(update.message.chat_id, text="Выбери, по каким критериям будем искать фильм?", reply_markup=rm)
         return GET_A_CINEMA_CHOOSE
     else:
@@ -42,12 +43,18 @@ def what_to_do_next(bot, update):
 
 
 def get_a_cinema_choose(bot, update):
-    variants = [['По названию фильма'], ['Премьеры']]
+    variants = [['По названию фильма'], ['По названию кинотеатра'], ['Премьеры']]
     if [update.message.text] == variants[0]:
         bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?",
                         reply_markup=ReplyKeyboardRemove())
         add_log(update, msg_in='По названию фильма', msg_out='')
         return GET_A_MOVIE_NAME
+    elif [update.message.text] == variants[1]:
+        bot.sendMessage(update.message.chat_id, text="Хорошо! Как называется кинотеатр?",
+                        reply_markup=ReplyKeyboardRemove())
+        add_log(update, msg_in='По названию кинотеатра', msg_out='')
+        return GET_A_CINEMA_NAME
+
     else:
         movies_dict = get_premier_dict()
         premier_info = "Премьеры недели:\n\n"
@@ -77,6 +84,28 @@ def get_a_similar_movie(bot, update):
         bot.sendMessage(update.message.chat_id, bot_phrase)
         add_log(update, msg_in='', msg_out=bot_phrase)
         return greet_user(bot, update)
+
+
+def get_a_cinema_name(bot, update):
+    global USER_INPUT
+    chat_id = update.message.chat_id
+    USER_INPUT[chat_id] = update.message.text
+    theater = get_theater_by_name(update.message.text)
+    print(theater.id)
+    exit(0)
+    add_log(update, msg_in='Название фильма = ' + str(update.message.text), msg_out='')
+    not_found_error_msg = "Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз."
+    if movie_id is None:
+        bot.sendMessage(chat_id, text=not_found_error_msg)
+        add_log(update, msg_in='', msg_out=not_found_error_msg)
+        return GET_A_MOVIE_NAME
+    location_keyboard = KeyboardButton(text="Найди кино рядом", request_location=True)
+    custom_keyboard = [[location_keyboard]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    find_movie_success = "Отличный выбор! Давай теперь выберем кинотеатр?"
+    bot.sendMessage(chat_id, text=find_movie_success, reply_markup=reply_markup)
+    add_log(update, msg_in="", msg_out=find_movie_success)
+    return ANALYZE_USER_LOCATION
 
 
 def get_a_movie_name(bot, update):
@@ -130,6 +159,7 @@ def main():
 
         states={
             GET_A_MOVIE_NAME: [MessageHandler([Filters.text], get_a_movie_name)],
+            GET_A_CINEMA_NAME: [MessageHandler([Filters.text], get_a_cinema_name)],
             GET_A_CINEMA_CHOOSE: [MessageHandler([Filters.text], get_a_cinema_choose)],
             ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analyze_user_location)],
             WHAT_TO_DO_NEXT: [MessageHandler([Filters.text], what_to_do_next)],
