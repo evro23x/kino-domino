@@ -23,6 +23,12 @@ def get_current_movie_id(user_input):
         return movie.id
 
 
+def get_theater_by_name(user_input):
+    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(user_input))).all()
+    if theater:
+        return theater
+
+
 def find_closest_theater(user_coordinates, movie_id):
     movie_slots = db_session.query(TimeSlots).filter(TimeSlots.movie_id == movie_id,
                                                      TimeSlots.time.between(datetime.now(),
@@ -122,6 +128,7 @@ def main_search(user_input, user_coordinates):
 
 if __name__ == '__main__':
     pass
+    get_theater_by_name("asd")
     # user_input = "логан"
     # print(main_search(user_input, user_coordinates))
     # print(get_current_movie_id(user_input))
