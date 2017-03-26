@@ -30,7 +30,8 @@ def greet_user(bot, update):
 def what_to_do_next(bot, update):
     variants = [['Посмотреть кино дома'], ['Сходить в кинотеатр']]
     if [update.message.text] == variants[1]:
-        rm = ReplyKeyboardMarkup([['По названию фильма'], ['По названию кинотеатра'], ['Премьеры']])
+        rm = ReplyKeyboardMarkup([['По названию фильма'], ['Премьеры']])
+        # rm = ReplyKeyboardMarkup([['По названию фильма'], ['По названию кинотеатра'], ['Премьеры']])
         bot.sendMessage(update.message.chat_id, text="Выбери, по каким критериям будем искать фильм?", reply_markup=rm)
         return GET_A_CINEMA_CHOOSE
     else:
@@ -43,17 +44,18 @@ def what_to_do_next(bot, update):
 
 
 def get_a_cinema_choose(bot, update):
-    variants = [['По названию фильма'], ['По названию кинотеатра'], ['Премьеры']]
+    variants = [['По названию фильма'], ['Премьеры']]
+    # variants = [['По названию фильма'], ['По названию кинотеатра'], ['Премьеры']]
     if [update.message.text] == variants[0]:
         bot.sendMessage(update.message.chat_id, text="Хорошо! Какой фильм хочешь посмотреть?",
                         reply_markup=ReplyKeyboardRemove())
         add_log(update, msg_in='По названию фильма', msg_out='')
         return GET_A_MOVIE_NAME
-    elif [update.message.text] == variants[1]:
-        bot.sendMessage(update.message.chat_id, text="Хорошо! Как называется кинотеатр?",
-                        reply_markup=ReplyKeyboardRemove())
-        add_log(update, msg_in='По названию кинотеатра', msg_out='')
-        return GET_A_CINEMA_NAME
+    # elif [update.message.text] == variants[1]:
+    #     bot.sendMessage(update.message.chat_id, text="Хорошо! Как называется кинотеатр?",
+    #                     reply_markup=ReplyKeyboardRemove())
+    #     add_log(update, msg_in='По названию кинотеатра', msg_out='')
+    #     return GET_A_CINEMA_NAME
 
     else:
         movies_dict = get_premier_dict()
@@ -91,7 +93,7 @@ def get_a_cinema_name(bot, update):
     chat_id = update.message.chat_id
     USER_INPUT[chat_id] = update.message.text
     theater = get_theater_by_name(update.message.text)
-    print(theater.id)
+    print(theater)
     exit(0)
     add_log(update, msg_in='Название фильма = ' + str(update.message.text), msg_out='')
     not_found_error_msg = "Извини, но этот фильм сейчас не идет в кинотеатрах. Попробуй еще раз."
