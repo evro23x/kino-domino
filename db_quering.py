@@ -5,6 +5,10 @@ from db_schema import MovieTheaters, Movies, db_session, TimeSlots, MovieFormats
 
 DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 
+# print(date.today())
+# print(date.today() + timedelta(1))
+# print(datetime.now() + timedelta(1))
+# exit(0)
 
 class UserRequestFail(Exception):
     def __init__(self):
@@ -24,7 +28,7 @@ def get_current_movie_id(user_input):
 
 
 def get_theater_by_name(user_input):
-    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(user_input))).all()
+    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(user_input))).first()
     if theater:
         return theater
 
@@ -44,6 +48,13 @@ def find_closest_theater(user_coordinates, movie_id):
         return closest_theater_id
     else:
         raise FindTheaterFail()
+
+
+def get_repertoire_by_theater_id_at_period(theater_id, date_from, date_to):
+    return TimeSlots.query.filter(
+        TimeSlots.movie_theaters_id == theater_id,
+        TimeSlots.time.between(date_from, date_to)
+    ).order_by('time').all()
 
 
 def get_movie_slots_in_theater_at_period(movie_id, theater_id, date_from, date_to):
@@ -128,7 +139,14 @@ def main_search(user_input, user_coordinates):
 
 if __name__ == '__main__':
     pass
-    get_theater_by_name("asd")
+    # print(TimeSlots.query.filter(TimeSlots.movie_theaters_id ==
+    # theater_id, TimeSlots.time.between(date_from, date_to)).order_by('time').all())
+    a = TimeSlots.query.filter(TimeSlots.movie_theaters_id == 21, TimeSlots.time.between(date.today(), date.today() + timedelta(1))).order_by('time').all()
+    for a1 in a:
+        print(a1.movie_id, a1.time)
+    # print(TimeSlots.query.filter(TimeSlots.movie_theaters_id == 21, TimeSlots.time.between(date.today(), date.today() + timedelta(1))).order_by('time').all())
+    # get_repertoire_by_theater_id_at_period(21, datetime.now(), date.today() + timedelta(1))
+    # get_theater_by_name("asd")
     # user_input = "логан"
     # print(main_search(user_input, user_coordinates))
     # print(get_current_movie_id(user_input))
