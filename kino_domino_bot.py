@@ -56,13 +56,15 @@ def get_a_cinema_choose(bot, update):
     #                     reply_markup=ReplyKeyboardRemove())
     #     add_log(update, msg_in='По названию кинотеатра', msg_out='')
     #     return GET_A_CINEMA_NAME
-
     else:
         movies_dict = get_premier_dict()
         premier_info = "Премьеры недели:\n\n"
         for movie_obj in movies_dict:
             premier_info += movie_obj.title
-            premier_info += " - <a href='" + movie_obj.trailer_url + "'>трейлер</a>\n"
+            if movie_obj.trailer_url:
+                premier_info += " - <a href='" + movie_obj.trailer_url + "'>трейлер</a>\n"
+            else:
+                premier_info += "\n"
         bot.sendMessage(update.message.chat_id, text=premier_info, parse_mode='HTML')
         return greet_user(bot, update)
 
