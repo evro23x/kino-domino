@@ -1,13 +1,14 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 # from db import db_session, MovieTheaters, MetroStations, TimeSlots, Movies, MovieFormats
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove  # InlineQueryResult
-from db_quering import get_current_movie_id, main_search, get_theater_by_name, get_repertoire_by_theater_id_at_period
+from db_quering import get_current_movie_id, main_search, get_theater_by_name, prepare_time_table_by_theater_at_period
 from request_movie_db import get_movie_id, find_similar_movie
 from config import tmdb_api_key_for_bot, telegram_api_key
 from datetime import datetime, date, timedelta
 from sql_wrapper import add_log, get_premier_dict
 
-GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE, GET_A_CINEMA_CHOOSE, GET_A_CINEMA_NAME, GET_A_CINEMA_CHOOSE_BY_DATE = range(7)
+GET_A_MOVIE_NAME, ANALYZE_USER_LOCATION, WHAT_TO_DO_NEXT, GET_A_SIMILAR_MOVIE, GET_A_CINEMA_CHOOSE, GET_A_CINEMA_NAME, GET_A_CINEMA_CHOOSE_BY_DATE = range(
+    7)
 
 USER_INPUT = {}
 USER_LOCATION = {}
@@ -111,7 +112,7 @@ def get_a_cinema_choose_by_date():
     print(theater.id)
     variants = [['Сегодня'], ['Завтра'], ['Послезавтра']]
     if [update.message.text] == variants[0]:
-        movies_dict = get_repertoire_by_theater_id_at_period(theater.id, datetime.now(), date.today() + timedelta(1))
+        movies_dict = prepare_time_table_by_theater_at_period(theater.id, date.today(), date.today() + timedelta(1))
         print(movies_dict)
         premier_info = "Расписание:\n\n"
         for movie_obj in movies_dict:
@@ -119,6 +120,9 @@ def get_a_cinema_choose_by_date():
         bot.sendMessage(update.message.chat_id, text=premier_info, parse_mode='HTML')
         return greet_user(bot, update)
     elif [update.message.text] == variants[1]:
+        movies_dict = prepare_time_table_by_theater_at_period(theater.id, date.today() + timedelta(2),
+                                                              date.today() + timedelta(3))
+        print(movies_dict)
         movies_dict = get_premier_dict()
         premier_info = "Премьеры недели:\n\n"
         for movie_obj in movies_dict:
@@ -130,6 +134,9 @@ def get_a_cinema_choose_by_date():
         bot.sendMessage(update.message.chat_id, text=premier_info, parse_mode='HTML')
         return greet_user(bot, update)
     else:
+        movies_dict = prepare_time_table_by_theater_at_period(theater.id, date.today() + timedelta(2),
+                                                              date.today() + timedelta(3))
+        print(movies_dict)
         movies_dict = get_premier_dict()
         premier_info = "Премьеры недели:\n\n"
         for movie_obj in movies_dict:
