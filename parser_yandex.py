@@ -83,15 +83,7 @@ def check_cinema_in_db(all_metro):
     cinema_list = []
     url_cinema_list = 'https://afisha.yandex.ru/api/events/cinema/places?limit=200&offset=0&city=moscow'
     for cinema in get_json_from_url(url_cinema_list)['items']:
-        print(cinema['phones'])
-        exit()
-
         phones = get_list_phones_from_string(cinema['phones'])
-        # phones = ['', '', '']
-        # if cinema['phones'] and len(cinema['phones']) != 0:
-        #     for i in range(len(cinema['phones'][0]['numbers'])):
-        #         phones[i] = cinema['phones'][0]['numbers'][i]
-
         latitude = float(cinema['coordinates']['latitude'])
         longitude = float(cinema['coordinates']['longitude'])
 
@@ -326,10 +318,12 @@ def set_premier_movie_status():
 def main():
     tmdb.API_KEY = tmdb_api_key
     metro_list = get_metro_stations_from_hh_api()
-    add_metro_stations(metro_list)
+
+    all_metro = add_metro_stations(metro_list)
+    check_cinema_in_db(all_metro)
+
     movies_id_list = check_movie_in_db()
     check_time_slot_in_db(movies_id_list)
-
 
 if __name__ == '__main__':
     main()
