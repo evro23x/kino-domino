@@ -3,11 +3,11 @@ from db_schema import db_session, MetroStations, MovieTheaters, TimeSlots, Movie
 from datetime import datetime, date, timedelta
 from request_movie_db import get_movie_info_from_tmdb_by_movie_title
 from config import tmdb_api_key
+from win_unicode_console import enable
+from sql_wrapper import get_or_create, reset_movies_status
 import tmdbsimple as tmdb
 import requests
-from win_unicode_console import enable
 import pprint
-from sql_wrapper import get_or_create, reset_movies_status
 
 # pprint.pprint(metro_list, width=1)
 
@@ -83,15 +83,7 @@ def check_cinema_in_db(all_metro):
     cinema_list = []
     url_cinema_list = 'https://afisha.yandex.ru/api/events/cinema/places?limit=200&offset=0&city=moscow'
     for cinema in get_json_from_url(url_cinema_list)['items']:
-        print(cinema['phones'])
-        exit()
-
         phones = get_list_phones_from_string(cinema['phones'])
-        # phones = ['', '', '']
-        # if cinema['phones'] and len(cinema['phones']) != 0:
-        #     for i in range(len(cinema['phones'][0]['numbers'])):
-        #         phones[i] = cinema['phones'][0]['numbers'][i]
-
         latitude = float(cinema['coordinates']['latitude'])
         longitude = float(cinema['coordinates']['longitude'])
 
@@ -307,9 +299,12 @@ def set_premier_movie_status():
     for movie in new_movie_list:
         url_film_info = 'https://afisha.yandex.ru/api/events/' + movie['event']['id'] + '?city=moscow'
         film_info = get_json_from_url(url_film_info)['event']
-        videos_url = film_info['data']['videos'][0]['url']
-        last_symbol_in_url = videos_url.find('?adPartner')
-        trailer_url = videos_url[2:last_symbol_in_url]
+        if film_info['data']['videos']:
+            videos_url = film_info['data']['videos'][0]['url']
+            last_symbol_in_url = videos_url.find('?adPartner')
+            trailer_url = videos_url[2:last_symbol_in_url]
+        else:
+            trailer_url = None
 
         check_movie_exist = db_session.query(Movies).filter_by(title=movie['event']['title'],
                                                                yandex_movie_id=movie['event']['id'],
@@ -326,10 +321,12 @@ def set_premier_movie_status():
 def main():
     tmdb.API_KEY = tmdb_api_key
     metro_list = get_metro_stations_from_hh_api()
-    add_metro_stations(metro_list)
+
+    all_metro = add_metro_stations(metro_list)
+    check_cinema_in_db(all_metro)
+
     movies_id_list = check_movie_in_db()
     check_time_slot_in_db(movies_id_list)
-
 
 if __name__ == '__main__':
     main()
