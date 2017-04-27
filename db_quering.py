@@ -18,7 +18,8 @@ class FindTheaterFail(Exception):
 
 # Узнаем id фильма
 def get_current_movie_id(user_input):
-    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(user_input))).first()
+    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(user_input))).\
+        order_by(Movies.id.desc()).first()
     if movie:
         return movie.id
 
