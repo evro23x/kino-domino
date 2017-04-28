@@ -22,15 +22,21 @@ class FindTheaterFail(Exception):
 
 
 # Узнаем id фильма
-def get_current_movie_id(user_input):
-    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(user_input))).\
+def get_current_movie_id(movies_title):
+    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(movies_title))). \
         order_by(Movies.id.desc()).first()
     if movie:
         return movie.id
 
 
-def get_theater_by_name(user_input):
-    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(user_input))).first()
+def get_theater_by_name(theaters_title):
+    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(theaters_title))).first()
+    if theater:
+        return theater
+
+
+def get_theater_by_id(theater_id):
+    theater = MovieTheaters.query.filter(MovieTheaters.id == theater_id).first()
     if theater:
         return theater
 
@@ -63,6 +69,11 @@ def find_closest_theater(user_coordinates, movie_id):
 
 
 def get_time_table_by_theater_id_at_period(theater_id, date_from, date_to):
+    print(theater_id, date_from, date_to)
+    print(db_session.query(TimeSlots, Movies, MovieFormats, MovieTheaters).filter(TimeSlots.movie_id == Movies.id). \
+          filter(TimeSlots.movie_theaters_id == MovieTheaters.id).filter(TimeSlots.movie_formats_id == MovieFormats.id). \
+          filter(TimeSlots.movie_theaters_id == theater_id, TimeSlots.time.between(date_from, date_to)). \
+          order_by(TimeSlots.movie_id, TimeSlots.movie_formats_id, TimeSlots.time))
     return db_session.query(TimeSlots, Movies, MovieFormats, MovieTheaters).filter(TimeSlots.movie_id == Movies.id). \
         filter(TimeSlots.movie_theaters_id == MovieTheaters.id).filter(TimeSlots.movie_formats_id == MovieFormats.id). \
         filter(TimeSlots.movie_theaters_id == theater_id, TimeSlots.time.between(date_from, date_to)). \
@@ -70,8 +81,11 @@ def get_time_table_by_theater_id_at_period(theater_id, date_from, date_to):
 
 
 def prepare_theater_timetable(theater_id, date_from, date_to):
+    print(4)
     time_table = get_time_table_by_theater_id_at_period(theater_id, date_from, date_to)
+    print(5)
     if time_table:
+        print(6)
         result = "Расписание кинотеатра - {}\nДата - {:%d-%m-%Y}({}):\n".format(time_table[0][3].title, date_from,
                                                                                 DAYS[datetime.weekday(date_from)])
         tmp_dict = dict(movie='', movie_format='')
@@ -98,7 +112,8 @@ def prepare_theater_timetable(theater_id, date_from, date_to):
                 result += ", цена: {}".format(int(min_price / 100))
             result += "\n"
     else:
-        result = "Расписание кинотеатра {} на дату {} :\n".format(time_table[0][3].title, date_from)
+        result = "Расписание кинотеатра {} на дату {:%d-%m-%Y} не найдено\n".format(
+            get_theater_by_id(theater_id).title, date_from)
     return result
 
 
