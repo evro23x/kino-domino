@@ -69,11 +69,6 @@ def find_closest_theater(user_coordinates, movie_id):
 
 
 def get_time_table_by_theater_id_at_period(theater_id, date_from, date_to):
-    print(theater_id, date_from, date_to)
-    print(db_session.query(TimeSlots, Movies, MovieFormats, MovieTheaters).filter(TimeSlots.movie_id == Movies.id). \
-          filter(TimeSlots.movie_theaters_id == MovieTheaters.id).filter(TimeSlots.movie_formats_id == MovieFormats.id). \
-          filter(TimeSlots.movie_theaters_id == theater_id, TimeSlots.time.between(date_from, date_to)). \
-          order_by(TimeSlots.movie_id, TimeSlots.movie_formats_id, TimeSlots.time))
     return db_session.query(TimeSlots, Movies, MovieFormats, MovieTheaters).filter(TimeSlots.movie_id == Movies.id). \
         filter(TimeSlots.movie_theaters_id == MovieTheaters.id).filter(TimeSlots.movie_formats_id == MovieFormats.id). \
         filter(TimeSlots.movie_theaters_id == theater_id, TimeSlots.time.between(date_from, date_to)). \
@@ -81,11 +76,8 @@ def get_time_table_by_theater_id_at_period(theater_id, date_from, date_to):
 
 
 def prepare_theater_timetable(theater_id, date_from, date_to):
-    print(4)
     time_table = get_time_table_by_theater_id_at_period(theater_id, date_from, date_to)
-    print(5)
     if time_table:
-        print(6)
         result = "Расписание кинотеатра - {}\nДата - {:%d-%m-%Y}({}):\n".format(time_table[0][3].title, date_from,
                                                                                 DAYS[datetime.weekday(date_from)])
         tmp_dict = dict(movie='', movie_format='')
@@ -182,5 +174,5 @@ if __name__ == '__main__':
     pass
     # print(get_time_table_by_theater_id_at_period(21, datetime.now().date(), date.today() + timedelta(1)))
     # print(prepare_theater_timetable(21, datetime.now(), date.today() + timedelta(1)))
-    print(prepare_theater_timetable(21, date.today() + timedelta(1), date.today() + timedelta(2)))
+    # print(prepare_theater_timetable(21, date.today() + timedelta(1), date.today() + timedelta(2)))
     # print(prepare_theater_timetable(21, date.today() + timedelta(2), date.today() + timedelta(3)))

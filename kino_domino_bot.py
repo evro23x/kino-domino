@@ -104,16 +104,13 @@ def get_a_cinema_name(bot, update):
         return GET_A_CINEMA_NAME
     rm = ReplyKeyboardMarkup([['Сегодня'], ['Завтра'], ['Послезавтра']])
     bot.sendMessage(update.message.chat_id, text="Запросить расписание на какой день?", reply_markup=rm)
-    print(1)
     return GET_A_CINEMA_CHOOSE_BY_DATE
 
 
 def get_a_cinema_choose_by_date(bot, update):
     variants = [['Сегодня'], ['Завтра'], ['Послезавтра']]
     theater_id = USER_INPUT['theater'].id
-    print(2)
     if [update.message.text] == variants[0]:
-        print(3)
         timetable = prepare_theater_timetable(theater_id, datetime.now(), date.today() + timedelta(1))
     elif [update.message.text] == variants[1]:
         timetable = prepare_theater_timetable(theater_id, date.today() + timedelta(1), date.today() + timedelta(2))
