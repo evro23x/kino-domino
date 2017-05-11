@@ -1,8 +1,9 @@
 import calendar
 from datetime import datetime, date, timedelta
 from geopy.distance import vincenty
-from sqlalchemy import func
+from sqlalchemy import create_engine, select, func
 from db_schema import MovieTheaters, Movies, db_session, TimeSlots, MovieFormats
+from config import db_configuration
 
 DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 
@@ -23,8 +24,15 @@ class FindTheaterFail(Exception):
 
 
 def db_duplicates_cleaner():
-    return MovieTheaters.query.filter([MovieTheaters.title, func.count(MovieTheaters.id)]).group_by(MovieTheaters.title).having(func.count(MovieTheaters.id) > 1)
-    # select title, count(*) from movie_theaters group by title having count(*) > 1
+    engine = create_engine(db_configuration, client_encoding='utf8')
+    connect = engine.connect()
+
+    s = select([MovieTheaters.title, func.count(MovieTheaters.id)]).group_by(MovieTheaters.title).having(
+        func.count(MovieTheaters.id) > 1)
+    for x in connect.execute(s).fetchall():
+        print(x)
+
+    # return
 
 
 def get_current_movie_id(movies_title):
@@ -177,7 +185,7 @@ def main_search(user_input, user_coordinates):
 
 if __name__ == '__main__':
     pass
-    # print(db_duplicates_cleaner())
+    print(db_duplicates_cleaner())
     # print(get_time_table_by_theater_id_at_period(21, datetime.now().date(), date.today() + timedelta(1)))
     # print(prepare_theater_timetable(21, datetime.now(), date.today() + timedelta(1)))
     # print(prepare_theater_timetable(21, date.today() + timedelta(1), date.today() + timedelta(2)))
