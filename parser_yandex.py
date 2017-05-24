@@ -23,7 +23,11 @@ def get_json_from_url(url):
 
     Обертка над получением данных в формате json по передаваемой ссылке
     """
-    return requests.get(url).json()
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return dict({'data': []})
 
 
 def get_metro_stations_from_hh_api():
@@ -97,7 +101,7 @@ def check_cinema_in_db(all_metro):
         print('Парсим всю инфу по кт - {}'.format(cinema['title']))
         check_theater_exist = db_session.query(MovieTheaters).filter_by(title=cinema['title']).first()
         if check_theater_exist:
-            db_session.query(MovieTheaters).filter(MovieTheaters.id == check_movie_exist.id).update({
+            db_session.query(MovieTheaters).filter(MovieTheaters.id == check_theater_exist.id).update({
                 "metro_id": metro_st_id,
                 "yandex_theater_id": cinema['id'],
                 "title": cinema['title'],
