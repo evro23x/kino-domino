@@ -19,6 +19,7 @@ class MetroStations(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     district = Column(String(50))
+    created_time = Column(DateTime, default=0)
     movie_theaters = relationship('MovieTheaters', backref='theaters')
 
     def __init__(self, title=None, latitude=None, longitude=None):
@@ -41,6 +42,7 @@ class MovieTheaters(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     time_slots = relationship('TimeSlots', backref='theater')
+    created_time = Column(DateTime, default=0)
 
     def __init__(self, metro_id, yandex_theater_id=None, title=None, address=None, latitude=None, longitude=None,
                  description=None,  phone1=None,  phone2=None,  phone3=None):
