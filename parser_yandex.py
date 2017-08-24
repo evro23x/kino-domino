@@ -23,7 +23,11 @@ def get_json_from_url(url):
 
     Обертка над получением данных в формате json по передаваемой ссылке
     """
-    return requests.get(url).json()
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return dict({'data': []})
 
 
 def get_metro_stations_from_hh_api():
@@ -32,7 +36,7 @@ def get_metro_stations_from_hh_api():
 
     Разбираем станции метро полученные от api hh.
     Информация о существующих станциях метро неизменна.
-    Количество станций может добавляться использую функцию get_or_create.
+    Количество станций может увеличиваться при помощи функции get_or_create.
     """
     metro_list_from_api = []
     for metro in get_json_from_url('https://api.hh.ru/metro/1')['lines']:
@@ -47,7 +51,7 @@ def add_metro_stations(metro_stations):
     Актуализация списка станций метро в db
 
     Разбираем станции метро полученные от api hh и складываем в базу.
-    Количество станций может добавляться использую функцию get_or_create.
+    Количество станций может увеличиваться при помощи функции get_or_create.
     """
     metro_list_from_db = []
     for station in metro_stations:
@@ -95,17 +99,33 @@ def check_cinema_in_db(all_metro):
                 if metro.title == cinema['metro'][0]['name']:
                     metro_st_id = metro.id
         print('Парсим всю инфу по кт - {}'.format(cinema['title']))
-        cinema_list.append(get_or_create(db_session, MovieTheaters,
-                                         metro_id=metro_st_id,
-                                         yandex_theater_id=cinema['id'],
-                                         title=cinema['title'],
-                                         latitude=cinema['coordinates']['latitude'],
-                                         longitude=cinema['coordinates']['longitude'],
-                                         address=cinema['address'],
-                                         description="",
-                                         phone1=phones[0],
-                                         phone2=phones[1],
-                                         phone3=phones[2]))
+        check_theater_exist = db_session.query(MovieTheaters).filter_by(title=cinema['title']).first()
+        if check_theater_exist:
+            db_session.query(MovieTheaters).filter(MovieTheaters.id == check_theater_exist.id).update({
+                "metro_id": metro_st_id,
+                "yandex_theater_id": cinema['id'],
+                "title": cinema['title'],
+                "latitude": cinema['coordinates']['latitude'],
+                "longitude": cinema['coordinates']['longitude'],
+                "address": cinema['address'],
+                "description": "",
+                "phone1": phones[0],
+                "phone2": phones[1],
+                "phone3": phones[2]
+            })
+            db_session.commit()
+        else:
+            cinema_list.append(get_or_create(db_session, MovieTheaters,
+                                             metro_id=metro_st_id,
+                                             yandex_theater_id=cinema['id'],
+                                             title=cinema['title'],
+                                             latitude=cinema['coordinates']['latitude'],
+                                             longitude=cinema['coordinates']['longitude'],
+                                             address=cinema['address'],
+                                             description="",
+                                             phone1=phones[0],
+                                             phone2=phones[1],
+                                             phone3=phones[2]))
     return cinema_list
 
 
@@ -327,6 +347,7 @@ def main():
 
     movies_id_list = check_movie_in_db()
     check_time_slot_in_db(movies_id_list)
+
 
 if __name__ == '__main__':
     main()

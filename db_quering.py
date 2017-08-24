@@ -1,7 +1,9 @@
 import calendar
 from datetime import datetime, date, timedelta
 from geopy.distance import vincenty
+from sqlalchemy import create_engine, select, func
 from db_schema import MovieTheaters, Movies, db_session, TimeSlots, MovieFormats
+from config import db_configuration
 
 DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 
@@ -21,16 +23,33 @@ class FindTheaterFail(Exception):
         Exception.__init__(self, "failed to find movie theater")
 
 
-# Узнаем id фильма
-def get_current_movie_id(user_input):
-    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(user_input))).\
+def db_duplicates_cleaner():
+    engine = create_engine(db_configuration, client_encoding='utf8')
+    connect = engine.connect()
+
+    s = select([MovieTheaters.title, func.count(MovieTheaters.id)]).group_by(MovieTheaters.title).having(
+        func.count(MovieTheaters.id) > 1)
+    for x in connect.execute(s).fetchall():
+        print(x)
+
+    # return
+
+
+def get_current_movie_id(movies_title):
+    movie = Movies.query.filter(Movies.time_slots.any(), Movies.title.ilike("%{}%".format(movies_title))). \
         order_by(Movies.id.desc()).first()
     if movie:
         return movie.id
 
 
-def get_theater_by_name(user_input):
-    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(user_input))).first()
+def get_theater_by_name(theaters_title):
+    theater = MovieTheaters.query.filter(MovieTheaters.title.ilike("%{}%".format(theaters_title))).first()
+    if theater:
+        return theater
+
+
+def get_theater_by_id(theater_id):
+    theater = MovieTheaters.query.filter(MovieTheaters.id == theater_id).first()
     if theater:
         return theater
 
@@ -98,7 +117,8 @@ def prepare_theater_timetable(theater_id, date_from, date_to):
                 result += ", цена: {}".format(int(min_price / 100))
             result += "\n"
     else:
-        result = "Расписание кинотеатра {} на дату {} :\n".format(time_table[0][3].title, date_from)
+        result = "Расписание кинотеатра {} на дату {:%d-%m-%Y} не найдено\n".format(
+            get_theater_by_id(theater_id).title, date_from)
     return result
 
 
@@ -165,7 +185,8 @@ def main_search(user_input, user_coordinates):
 
 if __name__ == '__main__':
     pass
+    print(db_duplicates_cleaner())
     # print(get_time_table_by_theater_id_at_period(21, datetime.now().date(), date.today() + timedelta(1)))
     # print(prepare_theater_timetable(21, datetime.now(), date.today() + timedelta(1)))
-    print(prepare_theater_timetable(21, date.today() + timedelta(1), date.today() + timedelta(2)))
+    # print(prepare_theater_timetable(21, date.today() + timedelta(1), date.today() + timedelta(2)))
     # print(prepare_theater_timetable(21, date.today() + timedelta(2), date.today() + timedelta(3)))
