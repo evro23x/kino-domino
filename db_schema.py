@@ -22,10 +22,11 @@ class MetroStations(Base):
     created_time = Column(DateTime, default=0)
     movie_theaters = relationship('MovieTheaters', backref='theaters')
 
-    def __init__(self, title=None, latitude=None, longitude=None):
+    def __init__(self, title=None, latitude=None, longitude=None, created_time=None):
         self.title = title
         self.latitude = latitude
         self.longitude = longitude
+        self.created_time = created_time
 
 
 class MovieTheaters(Base):
@@ -45,7 +46,7 @@ class MovieTheaters(Base):
     created_time = Column(DateTime, default=0)
 
     def __init__(self, metro_id, yandex_theater_id=None, title=None, address=None, latitude=None, longitude=None,
-                 description=None,  phone1=None,  phone2=None,  phone3=None):
+                 description=None,  phone1=None,  phone2=None,  phone3=None, created_time=None):
         self.metro_id = metro_id
         self.yandex_theater_id = yandex_theater_id
         self.title = title
@@ -56,6 +57,7 @@ class MovieTheaters(Base):
         self.phone1 = phone1
         self.phone2 = phone2
         self.phone3 = phone3
+        self.created_time = created_time
 
     def __repr__(self):
         return '<{} Movie_theater>'.format(self.title)

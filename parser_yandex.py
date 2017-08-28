@@ -56,10 +56,15 @@ def add_metro_stations(metro_stations):
     metro_list_from_db = []
     for station in metro_stations:
         print('Проверяем станцию - {}'.format(station['name']))
-        metro_list_from_db.append(get_or_create(db_session, MetroStations,
-                                                title=station['name'],
-                                                latitude=station['lat'],
-                                                longitude=station['lng']))
+        check_metro_exist = db_session.query(MetroStations).filter_by(title=station['name']).first()
+        if check_metro_exist:
+            metro_list_from_db.append(check_metro_exist)
+        else:
+            metro_list_from_db.append(get_or_create(db_session, MetroStations,
+                                                    title=station['name'],
+                                                    created_time=datetime.today(),
+                                                    latitude=station['lat'],
+                                                    longitude=station['lng']))
     return metro_list_from_db
 
 
@@ -119,6 +124,7 @@ def check_cinema_in_db(all_metro):
                                              metro_id=metro_st_id,
                                              yandex_theater_id=cinema['id'],
                                              title=cinema['title'],
+                                             created_time=datetime.today(),
                                              latitude=cinema['coordinates']['latitude'],
                                              longitude=cinema['coordinates']['longitude'],
                                              address=cinema['address'],
@@ -139,6 +145,7 @@ def get_metro_stations_from_db():
         result = {
             'id': u.__dict__['id'],
             'title': u.__dict__['title'],
+            'created_time': u.__dict__['created_time'],
             'latitude': u.__dict__['latitude'],
             'longitude': u.__dict__['longitude'],
         }

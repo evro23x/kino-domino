@@ -1,4 +1,4 @@
-from db_schema import db_session, Movies
+from db_schema import db_session, Movies, MovieTheaters
 from datetime import datetime
 
 
