@@ -5,7 +5,6 @@ from request_movie_db import get_movie_info_from_tmdb_by_movie_title
 from config import tmdb_api_key
 from win_unicode_console import enable
 from sql_wrapper import get_or_create, reset_movies_status
-from reports import send_report_mail
 import tmdbsimple as tmdb
 import requests
 import pprint
@@ -57,15 +56,10 @@ def add_metro_stations(metro_stations):
     metro_list_from_db = []
     for station in metro_stations:
         print('Проверяем станцию - {}'.format(station['name']))
-        check_metro_exist = db_session.query(MetroStations).filter_by(title=station['name']).first()
-        if check_metro_exist:
-            metro_list_from_db.append(check_metro_exist)
-        else:
-            metro_list_from_db.append(get_or_create(db_session, MetroStations,
-                                                    title=station['name'],
-                                                    created_time=date.today(),
-                                                    latitude=station['lat'],
-                                                    longitude=station['lng']))
+        metro_list_from_db.append(get_or_create(db_session, MetroStations,
+                                                title=station['name'],
+                                                latitude=station['lat'],
+                                                longitude=station['lng']))
     return metro_list_from_db
 
 
@@ -125,7 +119,6 @@ def check_cinema_in_db(all_metro):
                                              metro_id=metro_st_id,
                                              yandex_theater_id=cinema['id'],
                                              title=cinema['title'],
-                                             created_time=date.today(),
                                              latitude=cinema['coordinates']['latitude'],
                                              longitude=cinema['coordinates']['longitude'],
                                              address=cinema['address'],
@@ -146,7 +139,6 @@ def get_metro_stations_from_db():
         result = {
             'id': u.__dict__['id'],
             'title': u.__dict__['title'],
-            'created_time': u.__dict__['created_time'],
             'latitude': u.__dict__['latitude'],
             'longitude': u.__dict__['longitude'],
         }
@@ -227,7 +219,7 @@ def check_movie_in_db():
                               genre=movie_info_from_tmdb["genre"],
                               duration=movie_info_from_tmdb["duration"],
                               description=movie_info_from_tmdb["description"],
-                              create_date=date.today(),
+                              create_date=datetime.today(),
                               movie_status=MOVIE_STATUS['release']
                               )
             else:
@@ -235,7 +227,7 @@ def check_movie_in_db():
                               yandex_movie_id=movie['event']['id'],
                               title=movie['event']['title'],
                               start_date=movie['scheduleInfo']['dateReleased'],
-                              create_date=date.today(),
+                              create_date=datetime.today(),
                               movie_status=MOVIE_STATUS['release']
                               )
     set_premier_movie_status()
@@ -355,9 +347,6 @@ def main():
 
     movies_id_list = check_movie_in_db()
     check_time_slot_in_db(movies_id_list)
-
-    # парсер успешно отработал отправляем отчет
-    send_report_mail()
 
 
 if __name__ == '__main__':
