@@ -1,7 +1,7 @@
 from db_schema import db_session, MetroStations, Movies, MovieTheaters, TimeSlots
 from datetime import datetime, date, timedelta
 from sql_wrapper import get_premier_dict
-from config import gmail_sender, gmail_passwd
+from config import gmail_sender, gmail_passwd, report_recipient
 import smtplib
 
 
@@ -57,7 +57,7 @@ def total_report():
 
 # отправляем электрописьмо
 def send_report_mail():
-    TO = 'evro23x@mail.ru'
+    TO = report_recipient
     SUBJECT = 'Kino-domino: parser result information {}'.format(date.today())
     TEXT = total_report()
 
