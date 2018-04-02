@@ -97,3 +97,4 @@ add_timeslots.py
 config.py
 alembic.ini
 .DS_Store
+.vscode
