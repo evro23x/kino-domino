@@ -25,6 +25,7 @@ def get_json_from_url(url):
     Обертка над получением данных в формате json по передаваемой ссылке
     """
     response = requests.get(url)
+    print(response.text)
     if response.status_code == 200:
         return response.json()
     else:

@@ -170,13 +170,13 @@ def main():
         entry_points=[CommandHandler('start', greet_user)],
 
         states={
-            GET_A_MOVIE_NAME: [MessageHandler([Filters.text], get_a_movie_name)],
-            GET_A_CINEMA_NAME: [MessageHandler([Filters.text], get_a_cinema_name)],
-            GET_A_CINEMA_CHOOSE: [MessageHandler([Filters.text], get_a_cinema_choose)],
-            ANALYZE_USER_LOCATION: [MessageHandler([Filters.location], analyze_user_location)],
-            WHAT_TO_DO_NEXT: [MessageHandler([Filters.text], what_to_do_next)],
-            GET_A_SIMILAR_MOVIE: [MessageHandler([Filters.text], get_a_similar_movie)],
-            GET_A_CINEMA_CHOOSE_BY_DATE: [MessageHandler([Filters.text], get_a_cinema_choose_by_date)]
+            GET_A_MOVIE_NAME: [MessageHandler(Filters.text, get_a_movie_name)],
+            GET_A_CINEMA_NAME: [MessageHandler(Filters.text, get_a_cinema_name)],
+            GET_A_CINEMA_CHOOSE: [MessageHandler(Filters.text, get_a_cinema_choose)],
+            ANALYZE_USER_LOCATION: [MessageHandler(Filters.location, analyze_user_location)],
+            WHAT_TO_DO_NEXT: [MessageHandler(Filters.text, what_to_do_next)],
+            GET_A_SIMILAR_MOVIE: [MessageHandler(Filters.text, get_a_similar_movie)],
+            GET_A_CINEMA_CHOOSE_BY_DATE: [MessageHandler(Filters.text, get_a_cinema_choose_by_date)]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
