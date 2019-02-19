@@ -325,14 +325,20 @@ def set_premier_movie_status():
                          'limit=12&offset=0&hasMixed=0&city=moscow'
     new_movie_list = get_json_from_url(url_new_movie_list)['data']
     for movie in new_movie_list:
-        url_film_info = 'https://afisha.yandex.ru/api/events/' + movie['event']['id'] + '?city=moscow'
-        film_info = get_json_from_url(url_film_info)['event']
-        if film_info['data']['videos']:
-            videos_url = film_info['data']['videos'][0]['url']
-            last_symbol_in_url = videos_url.find('?adPartner')
-            trailer_url = videos_url[2:last_symbol_in_url]
-        else:
-            trailer_url = None
+
+        # 19/02/19 Обновилась api афиши и парсер крашится на получении url тизера
+        # обязательно нужно отремонтировать, но когда-нибудь потом, жизнь слишком коротка...
+        # А лучше все взять и переписать!!1
+
+        # url_film_info = 'https://afisha.yandex.ru/api/events/' + movie['event']['id'] + '?city=moscow'
+        # film_info = get_json_from_url(url_film_info)['event']
+        # if film_info['data']['videos']:
+        #     videos_url = film_info['data']['videos'][0]['url']
+        #     last_symbol_in_url = videos_url.find('?adPartner')
+        #     trailer_url = videos_url[2:last_symbol_in_url]
+        # else:
+        #     trailer_url = None
+        trailer_url = None
 
         check_movie_exist = db_session.query(Movies).filter_by(title=movie['event']['title'],
                                                                yandex_movie_id=movie['event']['id'],
